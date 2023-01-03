@@ -45,8 +45,7 @@ const MediaSeriesEpisode: ScreenComponent<PlaylistItem> = ({ data }) => {
 
   // Config
   const { config, accessModel } = useConfigStore(({ config, accessModel }) => ({ config, accessModel }), shallow);
-  const { styling, features, siteName, custom } = config;
-  const posterFading: boolean = styling?.posterFading === true;
+  const { features, siteName, custom } = config;
   const enableSharing: boolean = features?.enableSharing === true;
   const isFavoritesEnabled: boolean = Boolean(features?.favoritesList);
   const inlineLayout = Boolean(custom?.inlinePlayer);
@@ -171,7 +170,6 @@ const MediaSeriesEpisode: ScreenComponent<PlaylistItem> = ({ data }) => {
         shareButton={shareButton}
         favoriteButton={favoriteButton}
         trailerButton={trailerButton}
-        posterMode={posterFading ? 'fading' : 'normal'}
         startWatchingButton={startWatchingButton}
         isLoading={isLoading}
         accessModel={accessModel}
@@ -180,7 +178,6 @@ const MediaSeriesEpisode: ScreenComponent<PlaylistItem> = ({ data }) => {
         playlist={filteredPlaylist}
         relatedTitle={inlineLayout ? seriesPlaylist.title : t('episodes')}
         onItemClick={onCardClick}
-        enableCardTitles={styling.shelfTitles}
         setFilter={setSeasonFilter}
         currentFilter={seasonFilter}
         filterValuePrefix={t('season_prefix')}

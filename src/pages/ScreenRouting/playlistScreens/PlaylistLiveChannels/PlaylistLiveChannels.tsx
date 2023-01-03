@@ -31,9 +31,8 @@ const PlaylistLiveChannels: ScreenComponent<Playlist> = ({ data: { feedid, playl
 
   // Config
   const { config, accessModel } = useConfigStore(({ config, accessModel }) => ({ config, accessModel }), shallow);
-  const { siteName, styling, features } = config;
+  const { siteName, features } = config;
 
-  const posterFading: boolean = styling?.posterFading === true;
   const enableSharing: boolean = features?.enableSharing === true;
 
   const updateBlurImage = useBlurImageUpdater(playlist);
@@ -208,7 +207,6 @@ const PlaylistLiveChannels: ScreenComponent<Playlist> = ({ data: { feedid, playl
         description={videoDetails.description}
         item={channelMediaItem}
         primaryMetadata={primaryMetadata}
-        posterMode={posterFading ? 'fading' : 'normal'}
         image={videoDetails.image}
         startWatchingButton={startWatchingButton}
         shareButton={shareButton}

@@ -55,7 +55,6 @@ const PlaylistGrid: ScreenComponent<Playlist> = ({ data, isLoading }) => {
           playlist={filteredPlaylist}
           onCardClick={onCardClick}
           onCardHover={onCardHover}
-          enableCardTitles={config.styling.shelfTitles}
           accessModel={accessModel}
           isLoggedIn={!!user}
           hasSubscription={!!subscription}

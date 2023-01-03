@@ -19,6 +19,7 @@ import DynamicBlur from '#components/DynamicBlur/DynamicBlur';
 import MenuButton from '#components/MenuButton/MenuButton';
 import UserMenu from '#components/UserMenu/UserMenu';
 import { addQueryParam } from '#src/utils/location';
+import { DYNAMIC_BLUR } from '#src/config';
 
 const Layout = () => {
   const location = useLocation();
@@ -28,7 +29,7 @@ const Layout = () => {
   const { menu, assets, siteName, description, styling, features } = config;
   const { clientId } = useClientIntegration();
   const { searchPlaylist } = features || {};
-  const { footerText, dynamicBlur } = styling || {};
+  const { footerText } = styling || {};
 
   const { blurImage, searchQuery, searchActive, userMenuOpen } = useUIStore(
     ({ blurImage, searchQuery, searchActive, userMenuOpen }) => ({
@@ -45,7 +46,6 @@ const Layout = () => {
   const searchInputRef = useRef<HTMLInputElement>(null) as React.MutableRefObject<HTMLInputElement>;
 
   const [sideBarOpen, setSideBarOpen] = useState(false);
-  const hasDynamicBlur = dynamicBlur === true;
   const banner = assets.banner;
 
   useEffect(() => {
@@ -106,7 +106,7 @@ const Layout = () => {
         <meta name="twitter:description" content={description} />
       </Helmet>
       <div className={styles.main}>
-        {hasDynamicBlur && blurImage && <DynamicBlur image={blurImage} transitionTime={1} debounceTime={350} />}
+        {DYNAMIC_BLUR && blurImage && <DynamicBlur image={blurImage} transitionTime={1} debounceTime={350} />}
         <Header
           onMenuButtonClick={() => setSideBarOpen(true)}
           logoSrc={banner}

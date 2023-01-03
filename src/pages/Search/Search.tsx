@@ -21,7 +21,7 @@ import usePlaylist from '#src/hooks/usePlaylist';
 const Search = () => {
   const { t } = useTranslation('search');
   const { config, accessModel } = useConfigStore(({ config, accessModel }) => ({ config, accessModel }), shallow);
-  const { siteName, features, styling } = config;
+  const { siteName, features } = config;
 
   const firstRender = useFirstRender();
   const searchQuery = useUIStore((state) => state.searchQuery);
@@ -99,7 +99,6 @@ const Search = () => {
           onCardClick={onCardClick}
           onCardHover={onCardHover}
           isLoading={firstRender}
-          enableCardTitles={styling.shelfTitles}
           accessModel={accessModel}
           isLoggedIn={!!user}
           hasSubscription={!!subscription}

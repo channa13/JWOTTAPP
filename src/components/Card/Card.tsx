@@ -8,6 +8,7 @@ import { formatDurationTag, formatSeriesMetaString } from '#src/utils/formatting
 import Lock from '#src/icons/Lock';
 import Image from '#components/Image/Image';
 import type { ImageData } from '#types/playlist';
+import { ENABLE_SHELF_TITLES } from '#src/config';
 
 export const cardAspectRatios = ['2:1', '16:9', '5:3', '4:3', '1:1', '9:13', '2:3', '9:16'] as const;
 
@@ -30,7 +31,6 @@ type CardProps = {
   isCurrent?: boolean;
   isLocked?: boolean;
   currentLabel?: string;
-  enableTitle?: boolean;
 };
 
 function Card({
@@ -44,7 +44,6 @@ function Card({
   episodeNumber,
   progress,
   posterAspect = '16:9',
-  enableTitle = true,
   featured = false,
   disabled = false,
   loading = false,
@@ -94,7 +93,7 @@ function Card({
         {isCurrent && <div className={styles.currentLabel}>{currentLabel}</div>}
         {!loading && (
           <div className={styles.meta}>
-            {featured && !disabled && enableTitle && <div className={classNames(styles.title, { [styles.loading]: loading })}>{title}</div>}
+            {featured && !disabled && ENABLE_SHELF_TITLES && <div className={classNames(styles.title, { [styles.loading]: loading })}>{title}</div>}
             <div className={styles.tags}>
               {isLocked && (
                 <div className={classNames(styles.tag, styles.lock)} aria-label={t('card_lock')} role="status">
@@ -111,7 +110,7 @@ function Card({
           </div>
         ) : null}
       </div>
-      {!featured && !disabled && enableTitle && (
+      {!featured && !disabled && ENABLE_SHELF_TITLES && (
         <div className={styles.titleContainer}>
           <div className={classNames(styles.title, { [styles.loading]: loading })}>{title}</div>
         </div>

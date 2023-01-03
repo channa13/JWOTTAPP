@@ -27,11 +27,10 @@ import { logout } from '#src/stores/AccountController';
 import { clear as clearFavorites } from '#src/stores/FavoritesController';
 
 const User = (): JSX.Element => {
-  const { accessModel, favoritesList, shelfTitles } = useConfigStore(
+  const { accessModel, favoritesList } = useConfigStore(
     (s) => ({
       accessModel: s.accessModel,
       favoritesList: s.config.features?.favoritesList,
-      shelfTitles: s.config.styling.shelfTitles,
     }),
     shallow,
   );
@@ -116,7 +115,6 @@ const User = (): JSX.Element => {
                         onClearFavoritesClick={() => setClearFavoritesOpen(true)}
                         accessModel={accessModel}
                         hasSubscription={!!subscription}
-                        shelfTitles={shelfTitles}
                       />
                     )}
                   </PlaylistContainer>

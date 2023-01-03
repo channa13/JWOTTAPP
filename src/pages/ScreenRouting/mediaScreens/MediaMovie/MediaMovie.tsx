@@ -43,9 +43,8 @@ const MediaMovie: ScreenComponent<PlaylistItem> = ({ data, isLoading }) => {
 
   // Config
   const { config, accessModel } = useConfigStore(({ config, accessModel }) => ({ config, accessModel }), shallow);
-  const { siteName, styling, features, custom } = config;
+  const { siteName, features, custom } = config;
 
-  const posterFading: boolean = styling?.posterFading === true;
   const enableSharing: boolean = features?.enableSharing === true;
   const isFavoritesEnabled: boolean = Boolean(features?.favoritesList);
   const inlineLayout = Boolean(custom?.inlinePlayer);
@@ -141,13 +140,11 @@ const MediaMovie: ScreenComponent<PlaylistItem> = ({ data, isLoading }) => {
         shareButton={shareButton}
         favoriteButton={favoriteButton}
         trailerButton={trailerButton}
-        posterMode={posterFading ? 'fading' : 'normal'}
         startWatchingButton={startWatchingButton}
         playlist={playlist}
         relatedTitle={playlist?.title}
         onItemClick={onCardClick}
         activeLabel={t('current_video')}
-        enableCardTitles={styling.shelfTitles}
         player={
           inlineLayout ? (
             <InlinePlayer

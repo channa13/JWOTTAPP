@@ -30,7 +30,7 @@ type Props = {
 
 const ShelfList = ({ rows }: Props) => {
   const navigate = useNavigate();
-  const { config, accessModel } = useConfigStore(({ config, accessModel }) => ({ config, accessModel }), shallow);
+  const { accessModel } = useConfigStore(({ accessModel }) => ({ accessModel }), shallow);
   const [rowCount, setRowCount] = useState(INITIAL_ROW_COUNT);
 
   const watchHistoryDictionary = useWatchHistoryStore((state) => state.getDictionary());
@@ -93,7 +93,6 @@ const ShelfList = ({ rows }: Props) => {
                       onCardClick={onCardClick}
                       onCardHover={onCardHover}
                       enableTitle={row.enableText}
-                      enableCardTitles={config.styling.shelfTitles}
                       title={title}
                       featured={row.featured === true}
                       accessModel={accessModel}
