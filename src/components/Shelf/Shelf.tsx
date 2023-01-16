@@ -1,18 +1,19 @@
 import React, { useCallback, useState } from 'react';
-import type { Playlist, PlaylistItem } from 'types/playlist';
 import classNames from 'classnames';
 import { useTranslation } from 'react-i18next';
 
-import Card from '../Card/Card';
-import TileDock from '../TileDock/TileDock';
-import useBreakpoint, { Breakpoint, Breakpoints } from '../../hooks/useBreakpoint';
-import ChevronLeft from '../../icons/ChevronLeft';
-import ChevronRight from '../../icons/ChevronRight';
-import { findPlaylistImageForWidth } from '../../utils/collection';
-import type { AccessModel } from '../../../types/Config';
-import { isAllowedToWatch } from '../../utils/cleeng';
-
 import styles from './Shelf.module.scss';
+
+import useBreakpoint, { Breakpoint, Breakpoints } from '#src/hooks/useBreakpoint';
+import ChevronLeft from '#src/icons/ChevronLeft';
+import ChevronRight from '#src/icons/ChevronRight';
+import { findPlaylistImageForWidth } from '#src/utils/collection';
+import type { AccessModel } from '#types/Config';
+import type { Shelf as ShelfT } from '#src/enum/PersonalShelf';
+import { isLocked } from '#src/utils/entitlements';
+import TileDock from '#src/components/TileDock/TileDock';
+import Card from '#src/components/Card/Card';
+import type { Playlist, PlaylistItem } from '#types/playlist';
 
 export const tileBreakpoints: Breakpoints = {
   [Breakpoint.xs]: 1,
@@ -32,7 +33,8 @@ export const featuredTileBreakpoints: Breakpoints = {
 
 export type ShelfProps = {
   playlist: Playlist;
-  onCardClick: (playlistItem: PlaylistItem, playlistId?: string) => void;
+  type: ShelfT;
+  onCardClick: (playlistItem: PlaylistItem, playlistId: string | undefined, type: ShelfT) => void;
   onCardHover?: (playlistItem: PlaylistItem) => void;
   watchHistory?: { [key: string]: number };
   enableTitle?: boolean;
@@ -48,6 +50,7 @@ export type ShelfProps = {
 
 const Shelf: React.FC<ShelfProps> = ({
   playlist,
+  type,
   onCardClick,
   onCardHover,
   title,
@@ -79,12 +82,12 @@ const Shelf: React.FC<ShelfProps> = ({
         seriesId={item.seriesId}
         seasonNumber={item.seasonNumber}
         episodeNumber={item.episodeNumber}
-        onClick={isInView ? () => onCardClick(item, playlist.feedid) : undefined}
+        onClick={isInView ? () => onCardClick(item, playlist.feedid, type) : undefined}
         onHover={typeof onCardHover === 'function' ? () => onCardHover(item) : undefined}
         featured={featured}
         disabled={!isInView}
         loading={loading}
-        isLocked={!isAllowedToWatch(accessModel, isLoggedIn, item.requiresSubscription !== 'false', hasSubscription)}
+        isLocked={isLocked(accessModel, isLoggedIn, hasSubscription, item)}
       />
     ),
     [
@@ -99,6 +102,7 @@ const Shelf: React.FC<ShelfProps> = ({
       accessModel,
       isLoggedIn,
       hasSubscription,
+      type,
     ],
   );
 

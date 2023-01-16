@@ -1,9 +1,6 @@
-import React, { useContext } from 'react';
+import React from 'react';
 import { useTranslation } from 'react-i18next';
-import type { PlaylistItem } from 'types/playlist';
-import type { AccessModel, Config } from 'types/Config';
 
-import { ConfigContext } from '../../providers/ConfigProvider';
 import Button from '../Button/Button';
 import CardGrid from '../CardGrid/CardGrid';
 import LoadingOverlay from '../LoadingOverlay/LoadingOverlay';
@@ -11,6 +8,10 @@ import ErrorPage from '../ErrorPage/ErrorPage';
 import { Breakpoint, Breakpoints } from '../../hooks/useBreakpoint';
 
 import styles from './Favorites.module.scss';
+
+import type { AccessModel } from '#types/Config';
+import type { PlaylistItem } from '#types/playlist';
+import { useConfigStore } from '#src/stores/ConfigStore';
 
 type Props = {
   playlist: PlaylistItem[];
@@ -31,18 +32,9 @@ const cols: Breakpoints = {
   [Breakpoint.xl]: 3,
 };
 
-const Favorites = ({
-  playlist,
-  error,
-  isLoading,
-  accessModel,
-  hasSubscription,
-  onCardClick,
-  onCardHover,
-  onClearFavoritesClick,
-}: Props): JSX.Element => {
+const Favorites = ({ playlist, error, isLoading, accessModel, hasSubscription, onCardClick, onCardHover, onClearFavoritesClick }: Props): JSX.Element => {
   const { t } = useTranslation('user');
-  const config: Config = useContext(ConfigContext);
+  const shelfTitles = useConfigStore((s) => s.config.styling.shelfTitles);
 
   if (isLoading) return <LoadingOverlay />;
 
@@ -63,7 +55,7 @@ const Favorites = ({
           onCardHover={onCardHover}
           cols={cols}
           isLoading={isLoading}
-          enableCardTitles={config.options.shelveTitles}
+          enableCardTitles={shelfTitles}
           accessModel={accessModel}
           isLoggedIn={true}
           hasSubscription={hasSubscription}

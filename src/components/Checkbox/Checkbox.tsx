@@ -3,6 +3,7 @@ import classNames from 'classnames';
 import { useTranslation } from 'react-i18next';
 
 import useOpaqueId from '../../hooks/useOpaqueId';
+import HelperText from '../HelperText/HelperText';
 
 import styles from './Checkbox.module.scss';
 
@@ -33,9 +34,14 @@ const Checkbox: React.FC<Props> = ({ label, name, onChange, header, checked, val
       ) : null}
       <div className={styles.row}>
         <input name={name} type="checkbox" id={id} value={value} onChange={onChange} checked={checked} aria-required={required} disabled={disabled} />
-        <label htmlFor={id}>{required ? '* ' : ''}{label}</label>
+        <label htmlFor={id}>
+          {required ? '* ' : ''}
+          {label}
+        </label>
       </div>
-      {helperText ? <div className={styles.helperText}>{helperText}</div> : null}
+      <HelperText error={error} className={error ? styles.helperTextError : undefined}>
+        {helperText}
+      </HelperText>
     </div>
   );
 };

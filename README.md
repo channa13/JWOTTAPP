@@ -4,11 +4,28 @@ JW OTT Webapp is an open-source, dynamically generated video website built aroun
 
 To see an example of JW OTT Webapp in action, see [https://jw-ott-webapp.netlify.app/](https://jw-ott-webapp.netlify.app/).
 
+**Look at amazing examples built on the basis of JW OTT Webapp!**
+
+<table>
+  <tr>
+    <td>
+      <p>Symphony (<a href="https://symphony.live/">symphony.live</a>)</p>
+      <img src="./images/symphony.png" alt="hover text">
+    </td>
+    <td>
+      <p>FansChoice.tv (<a href="https://www.fanschoice.tv/">fanschoice.tv</a>)</p>
+      <img src="./images/fanschoice.png" alt="accessibility text">
+    </td>
+  </tr>
+</table>
+
 ## Documentation
 
 - [Configure JW OTT Webapp](./docs/configuration.md)
 - [Contributing Guidelines](CONTRIBUTING.md)
 - [Frameworks, SDK's and Libraries](./docs/frameworks.md)
+- [Backend Services](./docs/backend-services.md)
+- [Developer Guidelines](./docs/developer-guidelines.md)
 
 ## Supported Features
 
@@ -26,11 +43,20 @@ To see an example of JW OTT Webapp in action, see [https://jw-ott-webapp.netlify
 - A grid view for a particular playlist of videos, with the ability to deep-link to the playlist through a static URL.
 - Social sharing options using the device native sharing dialog.
 
-## Unsupported Features
+## Unsupported Feature(s)
 
-- Security-related features (encrypted HLS, DRM, signed URLs)
 - Self-hosted JW Players
+
+## Getting started
+
+- Clone this repository
+- Run `yarn` to install dependencies
+- Run `yarn start`
 
 ## Support and Bug Reporting
 
-To report bugs and feature requests, or request help using JW OTT Webapp, use this repository's [Issues](./issues) page.
+To report bugs and feature requests, or request help using JW OTT Webapp, use this repository's [Issues](https://github.com/jwplayer/ott-web-app/issues) page.
+
+## Software License
+
+This project is licensed under under the [Apache License, Version 2.0](https://www.apache.org/licenses/LICENSE-2.0).  See [LICENSE.txt](LICENSE.txt) for more details.

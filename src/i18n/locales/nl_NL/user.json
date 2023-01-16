@@ -3,11 +3,19 @@
     "about_you": "",
     "cancel": "",
     "confirm_password": "",
-    "delete_account": "",
     "edit_account": "",
     "edit_information": "",
     "edit_password": "",
     "email": "",
+    "errors": {
+      "email_exists": "",
+      "first_name_too_long": "",
+      "invalid_param_email": "",
+      "invalid_password": "",
+      "last_name_too_long": "",
+      "please_enter_valid_email": "",
+      "unknown_error": ""
+    },
     "firstname": "",
     "hide_password": "",
     "lastname": "",
@@ -33,10 +41,12 @@
     "payments": ""
   },
   "payment": {
+    "annual_subscription": "",
     "cancel_subscription": "",
     "card_number": "",
     "complete_subscription": "",
     "cvc_cvv": "",
+    "daily_subscription": "",
     "expiry_date": "",
     "hidden_transactions": "",
     "hidden_transactions_plural": "",
@@ -52,6 +62,7 @@
     "subscription_details": "",
     "subscription_expires_on": "",
     "transactions": "",
+    "weekly_subscription": "",
     "price_payed_with_card": ""
   }
 }

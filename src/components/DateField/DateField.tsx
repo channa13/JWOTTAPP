@@ -3,6 +3,7 @@ import classNames from 'classnames';
 import { useTranslation } from 'react-i18next';
 
 import useOpaqueId from '../../hooks/useOpaqueId';
+import HelperText from '../HelperText/HelperText';
 
 import styles from './DateField.module.scss';
 
@@ -30,7 +31,7 @@ const DateField: React.FC<Props> = ({ className, label, error, helperText, value
   const { t } = useTranslation('common');
   const parsedDate = parseDateString(value);
 
-  const [date, setDate] = useState({
+  const [values, setValues] = useState({
     date: parsedDate?.getDate().toString() || '',
     month: parsedDate ? (parsedDate.getMonth() + 1).toString() : '',
     year: parsedDate?.getFullYear().toString() || '',
@@ -51,7 +52,7 @@ const DateField: React.FC<Props> = ({ className, label, error, helperText, value
   };
 
   const handleKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
-    if (event.key === 'Backspace' && date[event.currentTarget.name as 'date' | 'month' | 'year'] === '') {
+    if (event.key === 'Backspace' && values[event.currentTarget.name as 'date' | 'month' | 'year'] === '') {
       (event.currentTarget.previousElementSibling as HTMLElement)?.focus();
 
       return event.preventDefault();
@@ -64,7 +65,7 @@ const DateField: React.FC<Props> = ({ className, label, error, helperText, value
 
   const padLeft = (value: number) => {
     return value > 0 && value < 10 ? `0${value}` : value.toString();
-  }
+  };
 
   const clamp = (value: number, min: number, max: number) => Math.min(max, Math.max(min, value));
 
@@ -85,7 +86,7 @@ const DateField: React.FC<Props> = ({ className, label, error, helperText, value
   const handleBlur = (event: React.FocusEvent<HTMLInputElement>) => {
     const { name, value } = event.target;
 
-    setDate((current) => {
+    setValues((current) => {
       const date = name === 'date' ? parseBlurValue(value, 1, 31) : current.date;
       const month = name === 'month' ? parseBlurValue(value, 1, 12) : current.month;
       const year = name === 'year' ? parseBlurValue(value, 1900, 2100) : current.year;
@@ -98,21 +99,19 @@ const DateField: React.FC<Props> = ({ className, label, error, helperText, value
     const { name, value } = event.target;
     const nextSibling = event.currentTarget?.nextElementSibling as HTMLInputElement;
 
-    setDate((current) => {
-      const date = name === 'date' ? parseInputValue(value, 0, 31) : current.date;
-      const month = name === 'month' ? parseInputValue(value, 0, 12) : current.month;
-      const year = name === 'year' ? parseInputValue(value, 0, 2100).slice(0, 4) : current.year;
+    const date = name === 'date' ? parseInputValue(value, 0, 31) : values.date;
+    const month = name === 'month' ? parseInputValue(value, 0, 12) : values.month;
+    const year = name === 'year' ? parseInputValue(value, 0, 2100).slice(0, 4) : values.year;
 
-      if (onChange) {
-        onChange(date && month && year ? format.replace('YYYY', year).replace('MM', month).replace('DD', date) : '');
-      }
+    setValues({ date, month, year });
 
-      if (nextSibling && (name === 'month' && month.length === 2) || ( name === 'date' && date.length === 2)) {
-        setTimeout(() => nextSibling.focus(), 1);
-      }
+    if (onChange) {
+      onChange(date && month && year ? format.replace('YYYY', year).replace('MM', month).replace('DD', date) : '');
+    }
 
-      return { date, month, year };
-    });
+    if ((nextSibling && name === 'month' && month.length === 2) || (name === 'date' && date.length === 2)) {
+      setTimeout(() => nextSibling.focus(), 1);
+    }
   };
 
   return (
@@ -126,7 +125,7 @@ const DateField: React.FC<Props> = ({ className, label, error, helperText, value
           className={styles.input}
           name="date"
           placeholder="dd"
-          value={date.date}
+          value={values.date}
           onFocus={handleFocus}
           onBlur={handleBlur}
           onChange={handleChange}
@@ -140,7 +139,7 @@ const DateField: React.FC<Props> = ({ className, label, error, helperText, value
           className={styles.input}
           name="month"
           placeholder="mm"
-          value={date.month}
+          value={values.month}
           onFocus={handleFocus}
           onBlur={handleBlur}
           onChange={handleChange}
@@ -154,7 +153,7 @@ const DateField: React.FC<Props> = ({ className, label, error, helperText, value
           className={styles.input}
           name="year"
           placeholder="yyyy"
-          value={date.year}
+          value={values.year}
           onFocus={handleFocus}
           onBlur={handleBlur}
           onChange={handleChange}
@@ -164,7 +163,7 @@ const DateField: React.FC<Props> = ({ className, label, error, helperText, value
           id={id}
         />
       </div>
-      {helperText ? <div className={styles.helperText}>{helperText}</div> : null}
+      <HelperText error={error}>{helperText}</HelperText>
     </div>
   );
 };

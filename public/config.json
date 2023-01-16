@@ -6,48 +6,71 @@
     {
       "enableText": true,
       "featured": true,
-      "playlistId": "CJE23b5T"
+      "type": "playlist",
+      "contentId": "JSKF03bk"
     },
     {
       "enableText": true,
-      "playlistId": "sR5VypYk"
+      "type": "favorites"
     },
     {
       "enableText": true,
-      "playlistId": "o45EkQBf"
+      "type": "continue_watching"
+    },
+    {
+      "enableText": true,
+      "type": "recommendations"
+    },
+    {
+      "enableText": true,
+      "type": "playlist",
+      "contentId": "dGSUzs9o"
+    },
+    {
+      "enableText": true,
+      "type": "playlist",
+      "contentId": "xQaFzykq"
     }
   ],
   "menu": [
     {
       "label": "Films",
-      "playlistId": "sR5VypYk",
+      "contentId": "dGSUzs9o",
+      "type": "playlist",
       "filterTags": "Action,Comedy,Fantasy,Drama"
     },
     {
       "label": "Courses",
-      "playlistId": "o45EkQBf",
+      "contentId": "xQaFzykq",
+      "type": "playlist",
       "filterTags": "Beginner,Advanced"
     }
   ],
-  "description": "Blender demo site",
-  "footerText": "\u00a9 Blender Foundation | [cloud.blender.org](https://cloud.blender.org)",
-  "analyticsToken": "lDd_MCg4EeuMunbqcIJccw",
-  "cleengId": "292636325",
-  "cleengSandbox": true,
-  "options": {
+  "features": {
+    "recommendationsPlaylist": "IHBjjkSN",
+    "searchPlaylist": "D4soEviP",
+    "favoritesList": "34CFUkws",
+    "continueWatchingList": "IJvotI4w"
+  },
+  "styling": {
+    "backgroundColor": null,
+    "highlightColor": null,
+    "headerBackground": null,
     "dynamicBlur": true,
     "posterFading": true,
-    "backgroundColor": null,
-    "shelveTitles": true,
-    "enableContinueWatching": true,
-    "highlightColor": null
+    "shelfTitles": true,
+    "footerText": "\u00a9 Blender Foundation | [cloud.blender.org](https://cloud.blender.org)"
   },
-  "player": "7xMa4gNw",
-  "recommendationsPlaylist": "fuD6TWcf",
-  "searchPlaylist": "tQ832H1H",
-  "siteName": "Blender",
-  "json": {
-    "cleengMonthlyOffer": "S916977979_NL",
-    "cleengYearlyOffer": "S345569153_NL"
-  }
+  "description": "Blender demo site",
+  "analyticsToken": "lDd_MCg4EeuMunbqcIJccw",
+  "integrations": {
+    "cleeng": {
+      "id": "440058292",
+      "useSandbox": true,
+      "monthlyOffer": "S970187168_NL",
+      "yearlyOffer": "S467691538_NL"
+    }
+  },
+  "player": "ou7L8htR",
+  "siteName": "Blender"
 }

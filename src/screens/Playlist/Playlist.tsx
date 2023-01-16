@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { RouteComponentProps, useHistory } from 'react-router-dom';
-import type { PlaylistItem } from 'types/playlist';
 import { Helmet } from 'react-helmet';
+import shallow from 'zustand/shallow';
 
 import { cardUrl } from '../../utils/formatting';
 import usePlaylist from '../../hooks/usePlaylist';
@@ -10,10 +10,12 @@ import CardGrid from '../../components/CardGrid/CardGrid';
 import ErrorPage from '../../components/ErrorPage/ErrorPage';
 import Filter from '../../components/Filter/Filter';
 import useBlurImageUpdater from '../../hooks/useBlurImageUpdater';
-import { AccountStore } from '../../stores/AccountStore';
-import { ConfigStore } from '../../stores/ConfigStore';
+import { useAccountStore } from '../../stores/AccountStore';
+import { useConfigStore } from '../../stores/ConfigStore';
 
 import styles from './Playlist.module.scss';
+
+import type { PlaylistItem } from '#types/playlist';
 
 type PlaylistRouteParams = {
   id: string;
@@ -25,8 +27,7 @@ function Playlist({
   },
 }: RouteComponentProps<PlaylistRouteParams>) {
   const history = useHistory();
-  const config = ConfigStore.useState((state) => state.config);
-  const accessModel = ConfigStore.useState((s) => s.accessModel);
+  const { config, accessModel } = useConfigStore(({ config, accessModel }) => ({ config, accessModel }), shallow);
 
   const { isLoading, isPlaceholderData, error, data: { title, playlist } = { title: '', playlist: [] } } = usePlaylist(id);
 
@@ -34,11 +35,11 @@ function Playlist({
 
   const categories = getFiltersFromConfig(config, id);
   const filteredPlaylist = useMemo(() => filterPlaylist(playlist, filter), [playlist, filter]);
+  const shouldShowFilter = !isLoading && !isPlaceholderData && Boolean(categories.length);
   const updateBlurImage = useBlurImageUpdater(filteredPlaylist);
 
   // User
-  const user = AccountStore.useState((state) => state.user);
-  const subscription = !!AccountStore.useState((state) => state.subscription);
+  const { user, subscription } = useAccountStore(({ user, subscription }) => ({ user, subscription }), shallow);
 
   useEffect(() => {
     // reset filter when the playlist id changes
@@ -63,7 +64,7 @@ function Playlist({
       </Helmet>
       <header className={styles.header}>
         <h2>{isLoading || isPlaceholderData ? 'Loading' : title}</h2>
-        {!isLoading && !isPlaceholderData && <Filter name="categories" value={filter} defaultLabel="All" options={categories} setValue={setFilter} />}
+        {shouldShowFilter && <Filter name="categories" value={filter} defaultLabel="All" options={categories} setValue={setFilter} />}
       </header>
       <main className={styles.main}>
         <CardGrid
@@ -71,7 +72,7 @@ function Playlist({
           onCardClick={onCardClick}
           onCardHover={onCardHover}
           isLoading={isLoading}
-          enableCardTitles={config.options.shelveTitles}
+          enableCardTitles={config.styling.shelfTitles}
           accessModel={accessModel}
           isLoggedIn={!!user}
           hasSubscription={!!subscription}

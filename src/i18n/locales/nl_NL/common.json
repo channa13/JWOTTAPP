@@ -1,9 +1,14 @@
 {
   "back": "",
+  "card_lock": "",
   "close_modal": "",
   "confirmation_dialog": {
     "close": "",
     "confirm": ""
+  },
+  "alert": {
+    "title": "",
+    "close": ""
   },
   "filter_videos_by_genre": "",
   "home": "",
@@ -13,5 +18,6 @@
   "sign_in": "",
   "sign_up": "",
   "slide_left": "",
-  "slide_right": ""
+  "slide_right": "",
+  "default_site_name": ""
 }

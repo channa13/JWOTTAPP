@@ -1,6 +1,6 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Vitest Snapshot v1
 
-exports[`<Layout /> renders layout 1`] = `
+exports[`<Layout /> > renders layout 1`] = `
 <div>
   <div
     class="layout"
@@ -45,7 +45,17 @@ exports[`<Layout /> renders layout 1`] = `
           <nav
             aria-label="menu"
             class="nav"
-          />
+          >
+            <a
+              aria-current="page"
+              class="button default text active"
+              href="/"
+            >
+              <span>
+                home
+              </span>
+            </a>
+          </nav>
           <div
             class="search"
           />
@@ -90,6 +100,7 @@ exports[`<Layout /> renders layout 1`] = `
         >
           <a
             aria-current="page"
+            aria-label="home"
             class="menuButton active"
             href="/"
             tabindex="-1"

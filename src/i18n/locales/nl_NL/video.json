@@ -1,17 +1,17 @@
 {
   "add_to_favorites": "",
   "all_seasons": "",
+  "buy": "",
   "complete_your_subscription": "",
   "continue_watching": "",
   "copied_url": "",
   "current_episode": "",
-  "currently_playing": "",
   "episode_not_found": "",
   "episodes": "",
   "favorite": "",
   "remove_from_favorites": "",
   "season_prefix": "",
-  "series_not_found": "",
+  "series_error": "",
   "share": "",
   "sign_up_to_start_watching": "",
   "start_watching": "",
@@ -20,5 +20,6 @@
   "trailer": "",
   "video_not_found": "",
   "watch_trailer": "",
-  "share_video": ""
+  "share_video": "",
+  "favorites_warning": ""
 }

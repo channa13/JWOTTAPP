@@ -1,26 +1,27 @@
-import React, { CSSProperties, useRef, useEffect, useCallback } from 'react';
+import React, { CSSProperties, useCallback, useEffect, useRef } from 'react';
 import memoize from 'memoize-one';
 import WindowScroller from 'react-virtualized/dist/commonjs/WindowScroller';
 import List from 'react-virtualized/dist/commonjs/List';
 import { useHistory } from 'react-router-dom';
-import type { Content } from 'types/Config';
-import type { PlaylistItem } from 'types/playlist';
 import classNames from 'classnames';
-
-import PlaylistContainer from '../../containers/Playlist/PlaylistContainer';
-import { favoritesStore } from '../../stores/FavoritesStore';
-import { AccountStore } from '../../stores/AccountStore';
-import { ConfigStore } from '../../stores/ConfigStore';
-import { PersonalShelf } from '../../enum/PersonalShelf';
-import { useWatchHistory } from '../../stores/WatchHistoryStore';
-import useBlurImageUpdater from '../../hooks/useBlurImageUpdater';
-import ShelfComponent, { featuredTileBreakpoints, tileBreakpoints } from '../../components/Shelf/Shelf';
-import usePlaylist from '../../hooks/usePlaylist';
-import useBreakpoint, { Breakpoint } from '../../hooks/useBreakpoint';
-import scrollbarSize from '../../utils/dom';
-import { cardUrl } from '../../utils/formatting';
+import shallow from 'zustand/shallow';
 
 import styles from './Home.module.scss';
+
+import PlaylistContainer from '#src/containers/Playlist/PlaylistContainer';
+import { useFavoritesStore } from '#src/stores/FavoritesStore';
+import { useAccountStore } from '#src/stores/AccountStore';
+import { useConfigStore } from '#src/stores/ConfigStore';
+import { Shelf } from '#src/enum/PersonalShelf';
+import useBlurImageUpdater from '#src/hooks/useBlurImageUpdater';
+import ShelfComponent, { featuredTileBreakpoints, tileBreakpoints } from '#src/components/Shelf/Shelf';
+import usePlaylist from '#src/hooks/usePlaylist';
+import useBreakpoint, { Breakpoint } from '#src/hooks/useBreakpoint';
+import scrollbarSize from '#src/utils/dom';
+import { cardUrl } from '#src/utils/formatting';
+import type { PlaylistItem } from '#types/playlist';
+import type { Content } from '#types/Config';
+import { useWatchHistoryStore } from '#src/stores/WatchHistoryStore';
 
 type rowData = {
   index: number;
@@ -36,28 +37,29 @@ const createItemData = memoize((content) => ({ content }));
 
 const Home = (): JSX.Element => {
   const history = useHistory();
-  const config = ConfigStore.useState((state) => state.config);
-  const accessModel = ConfigStore.useState((s) => s.accessModel);
+  const { config, accessModel } = useConfigStore(({ config, accessModel }) => ({ config, accessModel }), shallow);
   const breakpoint = useBreakpoint();
   const listRef = useRef<List>() as React.MutableRefObject<List>;
   const content: Content[] = config?.content;
   const itemData: ItemData = createItemData(content);
 
-  const { getPlaylist: getWatchHistoryPlaylist, getDictionary: getWatchHistoryDictionary } = useWatchHistory();
-  const watchHistory = getWatchHistoryPlaylist();
-  const watchHistoryDictionary = getWatchHistoryDictionary();
-  const favorites = favoritesStore.useState((state) => state.favorites);
+  const { continueWatchingPlaylist, watchHistoryDictionary, watchedItem } = useWatchHistoryStore(({ getPlaylist, getDictionary, getWatchedItem }) => ({
+    continueWatchingPlaylist: getPlaylist(),
+    watchHistoryDictionary: getDictionary(),
+    watchedItem: getWatchedItem(),
+  }));
 
-  const { data: { playlist } = { playlist: [] } } = usePlaylist(content[0]?.playlistId);
+  const favorites = useFavoritesStore((state) => state.favorites);
+
+  const { data: { playlist } = { playlist: [] } } = usePlaylist(content.find((el) => el.contentId)?.contentId as string);
   const updateBlurImage = useBlurImageUpdater(playlist);
 
   // User
-  const user = AccountStore.useState((state) => state.user);
-  const subscription = !!AccountStore.useState((state) => state.subscription);
+  const { user, subscription } = useAccountStore(({ user, subscription }) => ({ user, subscription }), shallow);
 
   const onCardClick = useCallback(
-    (playlistItem: PlaylistItem, playlistId?: string) => {
-      history.push(cardUrl(playlistItem, playlistId, playlistId === PersonalShelf.ContinueWatching));
+    (playlistItem, playlistId, type) => {
+      history.push(cardUrl(playlistItem, playlistId, type === Shelf.ContinueWatching));
     },
     [history],
   );
@@ -68,21 +70,25 @@ const Home = (): JSX.Element => {
 
     const contentItem: Content = itemData.content[index];
 
+    // For 'continue_watching' and 'favorites' sections there may be no contentId
+    const playlistKey = contentItem.contentId || contentItem.type;
+
     return (
-      <PlaylistContainer key={contentItem.playlistId} playlistId={contentItem.playlistId} style={style}>
+      <PlaylistContainer key={`${playlistKey}_${index}`} type={contentItem.type} playlistId={contentItem.contentId} style={style}>
         {({ playlist, error, isLoading, style }) => (
           <div key={key} style={style} role="row" className={classNames(styles.shelfContainer, { [styles.featured]: contentItem.featured })}>
             <div role="cell">
               <ShelfComponent
                 loading={isLoading}
                 error={error}
+                type={contentItem.type}
                 playlist={playlist}
-                watchHistory={playlist.feedid === PersonalShelf.ContinueWatching ? watchHistoryDictionary : undefined}
+                watchHistory={contentItem.type === Shelf.ContinueWatching ? watchHistoryDictionary : undefined}
                 onCardClick={onCardClick}
                 onCardHover={onCardHover}
                 enableTitle={contentItem.enableText}
-                enableCardTitles={config.options.shelveTitles}
-                title={playlist.title}
+                enableCardTitles={config.styling.shelfTitles}
+                title={contentItem?.title || playlist.title}
                 featured={contentItem.featured === true}
                 accessModel={accessModel}
                 isLoggedIn={!!user}
@@ -102,8 +108,9 @@ const Home = (): JSX.Element => {
     const isTablet = !isDesktop && !isMobile;
 
     if (!item) return 0;
-    if (item.playlistId === PersonalShelf.ContinueWatching && !watchHistory.playlist.length) return 0;
-    if (item.playlistId === PersonalShelf.Favorites && !favorites.length) return 0;
+    if (item.type === Shelf.ContinueWatching && !continueWatchingPlaylist.playlist.length) return 0;
+    if (item.type === Shelf.Favorites && !favorites.length) return 0;
+    if (item.type === Shelf.Recommendations && !watchedItem) return 0;
 
     const calculateFeatured = () => {
       const tilesToShow = featuredTileBreakpoints[breakpoint];
@@ -118,7 +125,7 @@ const Home = (): JSX.Element => {
       const tilesToShow = tileBreakpoints[breakpoint];
       const shelfTitlesHeight = item.enableText ? 40 : 0;
       const shelfMetaHeight = shelfTitlesHeight + 12;
-      const cardMetaHeight = config.options.shelveTitles ? 40 : 0;
+      const cardMetaHeight = config.styling.shelfTitles ? 40 : 0;
       const shelfHorizontalMargin = isMobile ? 76 : 0;
       const cardWidth = (document.body.offsetWidth - shelfHorizontalMargin) / tilesToShow;
       const cardHeight = cardWidth * (9 / 16);
@@ -130,10 +137,10 @@ const Home = (): JSX.Element => {
   };
 
   useEffect(() => {
-    if (favorites || watchHistory) {
+    if (favorites || continueWatchingPlaylist || watchedItem) {
       (listRef.current as unknown as List)?.recomputeRowHeights();
     }
-  }, [favorites, watchHistory]);
+  }, [favorites, continueWatchingPlaylist, watchedItem]);
 
   return (
     <div className={styles.home}>

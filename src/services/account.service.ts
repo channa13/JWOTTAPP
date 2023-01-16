@@ -13,22 +13,31 @@ import type {
   GetCaptureStatus,
   UpdateCaptureAnswers,
 } from '../../types/account';
+import { getOverrideIP, IS_DEV_BUILD } from '../utils/common';
 
 import { post, put, patch, get } from './cleeng.service';
 
 export const login: Login = async (payload, sandbox) => {
+  if (IS_DEV_BUILD) {
+    // @ts-ignore
+    payload.customerIP = window.overrideIP;
+  }
   return post(sandbox, '/auths', JSON.stringify(payload));
 };
 
 export const register: Register = async (payload, sandbox) => {
+  if (IS_DEV_BUILD) {
+    // @ts-ignore
+    payload.customerIP = getOverrideIP();
+  }
   return post(sandbox, '/customers', JSON.stringify(payload));
 };
 
-export const getPublisherConsents: GetPublisherConsents = async (payload, sandbox) => {
+export const fetchPublisherConsents: GetPublisherConsents = async (payload, sandbox) => {
   return get(sandbox, `/publishers/${payload.publisherId}/consents`);
 };
 
-export const getCustomerConsents: GetCustomerConsents = async (payload, sandbox, jwt) => {
+export const fetchCustomerConsents: GetCustomerConsents = async (payload, sandbox, jwt) => {
   return get(sandbox, `/customers/${payload.customerId}/consents`, jwt);
 };
 
@@ -57,7 +66,7 @@ export const refreshToken: RefreshToken = async (payload, sandbox) => {
 };
 
 export const getLocales: GetLocales = async (sandbox) => {
-  return get(sandbox, '/locales');
+  return get(sandbox, `/locales${IS_DEV_BUILD && getOverrideIP() ? '?customerIP=' + getOverrideIP() : ''}`);
 };
 
 export const getCaptureStatus: GetCaptureStatus = async ({ customerId }, sandbox, jwt) => {

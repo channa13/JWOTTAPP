@@ -1,8 +1,9 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Vitest Snapshot v1
 
-exports[`<MenuButton> renders and matches snapshot 1`] = `
+exports[`<MenuButton> > renders and matches snapshot 1`] = `
 <div>
   <div
+    aria-label="Label"
     class="menuButton"
     tabindex="0"
   >

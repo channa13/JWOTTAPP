@@ -1,11 +1,11 @@
-import type { Consent, CustomerConsent } from 'types/account';
-import type { Config } from 'types/Config';
-import type { GenericFormValues } from 'types/form';
-import type { Playlist, PlaylistItem } from 'types/playlist';
+import type { Consent, CustomerConsent } from '#types/account';
+import type { Config } from '#types/Config';
+import type { GenericFormValues } from '#types/form';
+import type { Playlist, PlaylistItem } from '#types/playlist';
 
 const getFiltersFromConfig = (config: Config, playlistId: string): string[] => {
-  const menuItem = config.menu.find((item) => item.playlistId === playlistId);
-  const filters = menuItem?.filterTags?.split(',');
+  const menuItem = config.menu.find((item) => item.contentId === playlistId);
+  const filters = menuItem?.filterTags?.split(',').filter(Boolean);
 
   return filters || [];
 };
@@ -14,18 +14,6 @@ const filterPlaylist = (playlist: PlaylistItem[], filter: string) => {
   if (!filter) return playlist;
 
   return playlist.filter(({ tags }) => (tags ? tags.split(',').includes(filter) : false));
-};
-
-const getFiltersFromSeries = (series: PlaylistItem[]): string[] =>
-  series.reduce(
-    (filters: string[], item) => (item.seasonNumber && filters.includes(item.seasonNumber) ? filters : filters.concat(item.seasonNumber || '')),
-    [],
-  );
-
-const filterSeries = (playlist: PlaylistItem[], filter: string) => {
-  if (!filter) return playlist;
-
-  return playlist.filter(({ seasonNumber }) => seasonNumber === filter);
 };
 
 const chunk = <T>(input: T[], size: number) => {
@@ -60,7 +48,7 @@ const generatePlaylistPlaceholder = (playlistLength: number = 15): Playlist => (
   ),
 });
 
-const formatConsentValues = (publisherConsents?: Consent[], customerConsents?: CustomerConsent[]) => {
+const formatConsentValues = (publisherConsents: Consent[] | null, customerConsents: CustomerConsent[] | null) => {
   if (!publisherConsents || !customerConsents) {
     return {};
   }
@@ -89,7 +77,7 @@ const extractConsentValues = (consents?: Consent[]) => {
   return values;
 };
 
-const formatConsentsFromValues = (publisherConsents?: Consent[], values?: GenericFormValues) => {
+const formatConsentsFromValues = (publisherConsents: Consent[] | null, values?: GenericFormValues) => {
   const consents: CustomerConsent[] = [];
 
   if (!publisherConsents || !values) return consents;
@@ -135,9 +123,7 @@ const deepCopy = (obj: unknown) => {
 
 export {
   getFiltersFromConfig,
-  getFiltersFromSeries,
   filterPlaylist,
-  filterSeries,
   chunk,
   findPlaylistImageForWidth,
   generatePlaylistPlaceholder,

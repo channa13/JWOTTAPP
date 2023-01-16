@@ -1,9 +1,8 @@
-import type { Playlist, PlaylistItem } from 'types/playlist';
-
-import { getSeriesId, getSeriesIdFromEpisode, isEpisode, isSeriesPlaceholder } from './media';
+import { getSeriesId, getSeriesIdFromEpisode, isEpisode, isSeriesPlaceholder } from '#src/utils/media';
+import type { Playlist, PlaylistItem } from '#types/playlist';
 
 export const formatDurationTag = (seconds: number): string | null => {
-  if (!seconds || typeof seconds !== 'number') return null;
+  if (!seconds) return null;
 
   const minutes = Math.ceil(seconds / 60);
 
@@ -21,7 +20,7 @@ export const formatDurationTag = (seconds: number): string | null => {
  */
 
 export const formatDuration = (duration: number): string | null => {
-  if (!duration || typeof duration !== 'number') return null;
+  if (!duration) return null;
 
   const hours = Math.floor(duration / 3600);
   const minutes = Math.round((duration - hours * 3600) / 60);
@@ -32,7 +31,7 @@ export const formatDuration = (duration: number): string | null => {
   return `${hoursString}${minutesString}`;
 };
 
-export const addQueryParams = (url: string, queryParams: { [key: string]: string | undefined | null }) => {
+export const addQueryParams = (url: string, queryParams: { [key: string]: string | number | string[] | undefined | null }) => {
   const queryStringIndex = url.indexOf('?');
   const urlWithoutSearch = queryStringIndex > -1 ? url.slice(0, queryStringIndex) : url;
   const urlSearchParams = new URLSearchParams(queryStringIndex > -1 ? url.slice(queryStringIndex) : undefined);
@@ -40,9 +39,14 @@ export const addQueryParams = (url: string, queryParams: { [key: string]: string
   Object.keys(queryParams).forEach((key) => {
     const value = queryParams[key];
 
-    if (typeof value !== 'string') return;
+    // null or undefined
+    if (value == null) return;
 
-    urlSearchParams.set(key, value);
+    if (typeof value === 'object' && !value?.length) return;
+
+    const formattedValue = Array.isArray(value) ? value.join(',') : value;
+
+    urlSearchParams.set(key, String(formattedValue));
   });
   const queryString = urlSearchParams.toString();
 
@@ -66,7 +70,10 @@ export const movieURL = (item: PlaylistItem, playlistId?: string | null, play: b
 export const seriesURL = (item: PlaylistItem, playlistId?: string | null, play: boolean = false) => {
   const seriesId = getSeriesId(item);
 
-  return addQueryParams(`/s/${seriesId}/${slugify(item.title)}`, { r: playlistId, play: play ? '1' : null });
+  return addQueryParams(`/s/${seriesId}/${slugify(item.title)}`, {
+    r: playlistId,
+    play: play ? '1' : null,
+  });
 };
 
 export const episodeURL = (seriesPlaylist: Playlist, episodeId?: string, play: boolean = false, playlistId?: string | null) =>

@@ -3,35 +3,41 @@ import type { RouteComponentProps } from 'react-router-dom';
 import { useHistory } from 'react-router';
 import { Helmet } from 'react-helmet';
 import { useTranslation } from 'react-i18next';
-
-import CardGrid from '../../components/CardGrid/CardGrid';
-import { useFavorites } from '../../stores/FavoritesStore';
-import useBlurImageUpdater from '../../hooks/useBlurImageUpdater';
-import { episodeURL } from '../../utils/formatting';
-import Filter from '../../components/Filter/Filter';
-import type { PlaylistItem } from '../../../types/playlist';
-import VideoComponent from '../../components/Video/Video';
-import useMedia from '../../hooks/useMedia';
-import usePlaylist from '../../hooks/usePlaylist';
-import ErrorPage from '../../components/ErrorPage/ErrorPage';
-import { generateEpisodeJSONLD } from '../../utils/structuredData';
-import { copyToClipboard } from '../../utils/dom';
-import { filterSeries, getFiltersFromSeries } from '../../utils/collection';
-import LoadingOverlay from '../../components/LoadingOverlay/LoadingOverlay';
-import { useWatchHistory, watchHistoryStore } from '../../stores/WatchHistoryStore';
-import { VideoProgressMinMax } from '../../config';
-import { ConfigStore } from '../../stores/ConfigStore';
-import { isAllowedToWatch } from '../../utils/cleeng';
-import { AccountStore } from '../../stores/AccountStore';
-import { addQueryParam } from '../../utils/history';
+import shallow from 'zustand/shallow';
 
 import styles from './Series.module.scss';
+
+import useEntitlement from '#src/hooks/useEntitlement';
+import CardGrid from '#src/components/CardGrid/CardGrid';
+import useBlurImageUpdater from '#src/hooks/useBlurImageUpdater';
+import { episodeURL } from '#src/utils/formatting';
+import Filter from '#src/components/Filter/Filter';
+import type { PlaylistItem } from '#src/../types/playlist';
+import VideoComponent from '#src/components/Video/Video';
+import useMedia from '#src/hooks/useMedia';
+import { useSeriesData } from '#src/hooks/useSeriesData';
+import ErrorPage from '#src/components/ErrorPage/ErrorPage';
+import { generateEpisodeJSONLD } from '#src/utils/structuredData';
+import { copyToClipboard } from '#src/utils/dom';
+import { filterSeries, getFiltersFromSeries, getNextItemId, enrichMediaItems } from '#src/utils/series';
+import LoadingOverlay from '#src/components/LoadingOverlay/LoadingOverlay';
+import { useWatchHistoryStore } from '#src/stores/WatchHistoryStore';
+import { useConfigStore } from '#src/stores/ConfigStore';
+import { useAccountStore } from '#src/stores/AccountStore';
+import { useFavoritesStore } from '#src/stores/FavoritesStore';
+import { toggleFavorite } from '#src/stores/FavoritesController';
+import StartWatchingButton from '#src/containers/StartWatchingButton/StartWatchingButton';
+import { getSeriesIdFromEpisode } from '#src/utils/media';
 
 type SeriesRouteParams = {
   id: string;
 };
 
 const Series = ({ match, location }: RouteComponentProps<SeriesRouteParams>): JSX.Element => {
+  const { t } = useTranslation('video');
+  const [hasShared, setHasShared] = useState<boolean>(false);
+  const [playTrailer, setPlayTrailer] = useState<boolean>(false);
+
   // Routing
   const history = useHistory();
   const searchParams = useMemo(() => new URLSearchParams(location.search), [location.search]);
@@ -41,50 +47,49 @@ const Series = ({ match, location }: RouteComponentProps<SeriesRouteParams>): JS
   const feedId = searchParams.get('l');
 
   // Config
-  const { options, siteName } = ConfigStore.useState((s) => s.config);
-  const accessModel = ConfigStore.useState((s) => s.accessModel);
-  const posterFading: boolean = options?.posterFading === true;
-  const enableSharing: boolean = options?.enableSharing === true;
-
-  const { t } = useTranslation('video');
+  const { config, accessModel } = useConfigStore(({ config, accessModel }) => ({ config, accessModel }), shallow);
+  const { styling, features, siteName } = config;
+  const posterFading: boolean = styling?.posterFading === true;
+  const enableSharing: boolean = features?.enableSharing === true;
+  const isFavoritesEnabled: boolean = Boolean(features?.favoritesList);
 
   // Media
-  const { isLoading, error, data: item } = useMedia(episodeId);
-  const itemRequiresSubscription = item?.requiresSubscription !== 'false';
-  useBlurImageUpdater(item);
-  const { data: trailerItem } = useMedia(item?.trailerId || '');
   const {
-    isLoading: playlistIsLoading,
-    error: playlistError,
-    data: seriesPlaylist = { title: '', playlist: [] },
-  } = usePlaylist(id, undefined, true, false);
-  const [seasonFilter, setSeasonFilter] = useState<string>('');
+    isLoading: isPlaylistLoading,
+    isPlaylistError,
+    data: { series, seriesPlaylist },
+  } = useSeriesData(id);
+  const { data: rawItem, isLoading: isEpisodeLoading, isError: isItemError } = useMedia(episodeId);
+  const { data: trailerItem } = useMedia(rawItem?.trailerId || '');
+
+  const item = series && rawItem ? enrichMediaItems(series, [rawItem])[0] : rawItem;
+  const nextItemId = getNextItemId(item, series, seriesPlaylist);
+
+  const seriesId = getSeriesIdFromEpisode(item);
+  const isLoading = isPlaylistLoading || isEpisodeLoading;
+
+  const [seasonFilter, setSeasonFilter] = useState<string>(item?.seasonNumber || '1');
   const filters = getFiltersFromSeries(seriesPlaylist.playlist);
   const filteredPlaylist = useMemo(() => filterSeries(seriesPlaylist.playlist, seasonFilter), [seriesPlaylist, seasonFilter]);
 
-  const { hasItem, saveItem, removeItem } = useFavorites();
+  // Favorite
+  const { isFavorited } = useFavoritesStore((state) => ({
+    isFavorited: !!item && state.hasItem(item),
+  }));
 
-  const watchHistory = watchHistoryStore.useState((s) => s.watchHistory);
-  const watchHistoryItem =
-    item &&
-    watchHistory.find(({ mediaid, progress }) => {
-      return mediaid === item.mediaid && progress > VideoProgressMinMax.Min && progress < VideoProgressMinMax.Max;
-    });
-  const progress = watchHistoryItem?.progress;
-  const { getDictionary: getWatchHistoryDictionary } = useWatchHistory();
-  const watchHistoryDictionary = getWatchHistoryDictionary();
+  const watchHistoryDictionary = useWatchHistoryStore((state) => state.getDictionary());
 
-  // General state
-  const isFavorited = !!item && hasItem(item);
-  const [hasShared, setHasShared] = useState<boolean>(false);
-  const [playTrailer, setPlayTrailer] = useState<boolean>(false);
+  // User, entitlement
+  const { user, subscription } = useAccountStore(({ user, subscription }) => ({ user, subscription }), shallow);
+  const { isEntitled } = useEntitlement(item);
 
-  // User
-  const user = AccountStore.useState((state) => state.user);
-  const subscription = AccountStore.useState((state) => state.subscription);
-  const allowedToWatch = isAllowedToWatch(accessModel, !!user, itemRequiresSubscription, !!subscription);
+  useBlurImageUpdater(item);
 
   // Handlers
+  const onFavoriteButtonClick = useCallback(() => {
+    toggleFavorite(item);
+  }, [item]);
+
   const goBack = () => item && seriesPlaylist && history.push(episodeURL(seriesPlaylist, item.mediaid, false));
   const onCardClick = (item: PlaylistItem) => seriesPlaylist && history.push(episodeURL(seriesPlaylist, item.mediaid));
   const onShareClick = (): void => {
@@ -99,27 +104,12 @@ const Series = ({ match, location }: RouteComponentProps<SeriesRouteParams>): JS
     setHasShared(true);
     setTimeout(() => setHasShared(false), 2000);
   };
+
   const handleComplete = useCallback(() => {
-    if (!item || !seriesPlaylist) return;
-
-    const index = seriesPlaylist.playlist.findIndex(({ mediaid }) => mediaid === item.mediaid);
-    const nextItem = seriesPlaylist.playlist[index + 1];
-
-    return nextItem && history.push(episodeURL(seriesPlaylist, nextItem.mediaid, true));
-  }, [history, item, seriesPlaylist]);
-
-  const formatStartWatchingLabel = (): string => {
-    if (!allowedToWatch && !user) return t('sign_up_to_start_watching');
-    if (!allowedToWatch && !subscription) return t('complete_your_subscription');
-    return typeof progress === 'number' ? t('continue_watching') : t('start_watching');
-  };
-
-  const handleStartWatchingClick = useCallback(() => {
-    if (!allowedToWatch && !user) return history.push(addQueryParam(history, 'u', 'create-account'));
-    if (!allowedToWatch && !subscription) return history.push('/u/payments');
-
-    return history.push(episodeURL(seriesPlaylist, item?.mediaid, true));
-  }, [allowedToWatch, user, history, subscription, seriesPlaylist, item?.mediaid]);
+    if (nextItemId) {
+      history.push(episodeURL(seriesPlaylist, nextItemId, true));
+    }
+  }, [history, nextItemId, seriesPlaylist]);
 
   // Effects
   useEffect(() => {
@@ -139,10 +129,14 @@ const Series = ({ match, location }: RouteComponentProps<SeriesRouteParams>): JS
     }
   }, [history, searchParams, seriesPlaylist]);
 
+  useEffect(() => {
+    setSeasonFilter(item?.seasonNumber || '');
+  }, [item?.seasonNumber, setSeasonFilter]);
+
   // UI
-  if ((!item && isLoading) || playlistIsLoading || !searchParams.has('e')) return <LoadingOverlay />;
-  if ((!isLoading && error) || !item) return <ErrorPage title={t('episode_not_found')} />;
-  if (playlistError || !seriesPlaylist) return <ErrorPage title={t('series_not_found')} />;
+  if (isLoading) return <LoadingOverlay />;
+  if ((!isLoading && isItemError) || !item) return <ErrorPage title={t('episode_not_found')} />;
+  if (isPlaylistError) return <ErrorPage title={t('series_error')} />;
 
   const pageTitle = `${item.title} - ${siteName}`;
   const canonicalUrl = seriesPlaylist && item ? `${window.location.origin}${episodeURL(seriesPlaylist, item.mediaid)}` : window.location.href;
@@ -179,11 +173,7 @@ const Series = ({ match, location }: RouteComponentProps<SeriesRouteParams>): JS
         item={item}
         feedId={feedId ?? undefined}
         trailerItem={trailerItem}
-        play={play && allowedToWatch}
-        allowedToWatch={allowedToWatch}
-        progress={progress}
-        startWatchingLabel={formatStartWatchingLabel()}
-        onStartWatchingClick={handleStartWatchingClick}
+        play={play && isEntitled}
         goBack={goBack}
         onComplete={handleComplete}
         poster={posterFading ? 'fading' : 'normal'}
@@ -194,7 +184,9 @@ const Series = ({ match, location }: RouteComponentProps<SeriesRouteParams>): JS
         onTrailerClick={() => setPlayTrailer(true)}
         onTrailerClose={() => setPlayTrailer(false)}
         isFavorited={isFavorited}
-        onFavoriteButtonClick={() => (isFavorited ? removeItem(item) : saveItem(item))}
+        isFavoritesEnabled={isFavoritesEnabled}
+        onFavoriteButtonClick={onFavoriteButtonClick}
+        startWatchingButton={<StartWatchingButton item={item} seriesId={seriesId} />}
         isSeries
       >
         <>
@@ -218,7 +210,7 @@ const Series = ({ match, location }: RouteComponentProps<SeriesRouteParams>): JS
             isLoading={isLoading}
             currentCardItem={item}
             currentCardLabel={t('current_episode')}
-            enableCardTitles={options.shelveTitles}
+            enableCardTitles={styling.shelfTitles}
             accessModel={accessModel}
             isLoggedIn={!!user}
             hasSubscription={!!subscription}

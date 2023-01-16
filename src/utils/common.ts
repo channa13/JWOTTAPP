@@ -49,3 +49,19 @@ export function calculateContrastColor(color: string) {
   // http://stackoverflow.com/a/3943023/112731
   return rgb.r * 0.299 + rgb.g * 0.587 + rgb.b * 0.114 > 186 ? '#000000' : '#FFFFFF';
 }
+
+export const IS_DEV_BUILD = import.meta.env.DEV;
+
+export function logDev(message: unknown, ...optionalParams: unknown[]) {
+  if (IS_DEV_BUILD) {
+    console.info(message, optionalParams);
+  }
+}
+
+export function getOverrideIP() {
+  return document.cookie
+    .split(';')
+    .find((s) => s.trim().startsWith('overrideIP'))
+    ?.split('=')[1]
+    .trim();
+}

@@ -1,8 +1,6 @@
 import React from 'react';
 import { useHistory } from 'react-router';
 import { useTranslation } from 'react-i18next';
-import type { LoginFormData } from 'types/account';
-import type { FormErrors } from 'types/form';
 
 import useToggle from '../../hooks/useToggle';
 import { addQueryParam } from '../../utils/history';
@@ -14,8 +12,12 @@ import Visibility from '../../icons/Visibility';
 import VisibilityOff from '../../icons/VisibilityOff';
 import FormFeedback from '../FormFeedback/FormFeedback';
 import LoadingOverlay from '../LoadingOverlay/LoadingOverlay';
+import { IS_DEV_BUILD } from '../../utils/common';
 
 import styles from './LoginForm.module.scss';
+
+import type { FormErrors } from '#types/form';
+import type { LoginFormData } from '#types/account';
 
 type Props = {
   onSubmit: React.FormEventHandler<HTMLFormElement>;
@@ -33,7 +35,7 @@ const LoginForm: React.FC<Props> = ({ onSubmit, onChange, values, errors, submit
   const history = useHistory();
 
   return (
-    <form onSubmit={onSubmit} data-testid="login-form" noValidate>
+    <form onSubmit={onSubmit} data-testid={IS_DEV_BUILD ? 'login-form' : undefined} noValidate>
       <h2 className={styles.title}>{t('login.sign_in')}</h2>
       {errors.form ? <FormFeedback variant="error">{errors.form}</FormFeedback> : null}
       <TextField
@@ -46,6 +48,7 @@ const LoginForm: React.FC<Props> = ({ onSubmit, onChange, values, errors, submit
         name="email"
         type="email"
         required
+        testId="login-email-input"
       />
       <TextField
         value={values.password}
@@ -62,6 +65,7 @@ const LoginForm: React.FC<Props> = ({ onSubmit, onChange, values, errors, submit
           </IconButton>
         }
         required
+        testId="login-password-input"
       />
       {submitting && <LoadingOverlay transparentBackground inline />}
       <Link className={styles.link} to={addQueryParam(history, 'u', 'forgot-password')}>

@@ -1,0 +1,11 @@
+// Vitest Snapshot v1
+
+exports[`<HelperText> > renders and matches snapshot 1`] = `
+<div>
+  <div
+    class="helperText error"
+  >
+    Hello world!
+  </div>
+</div>
+`;

@@ -1,3 +1,4 @@
+// noinspection JSUnusedGlobalSymbols
 interface Window {
   configLocation: configLocation;
   configId: string;

@@ -1,69 +1,86 @@
 import React, { Component } from 'react';
-import { BrowserRouter as Router } from 'react-router-dom';
-import { I18nextProvider, getI18n } from 'react-i18next';
-import type { Config } from 'types/Config';
+import { getI18n, I18nextProvider } from 'react-i18next';
 
-import Root from './components/Root/Root';
-import ConfigProvider from './providers/ConfigProvider';
-import QueryProvider from './providers/QueryProvider';
-import './i18n/config';
-import './styles/main.scss';
-import { restoreWatchHistory } from './stores/WatchHistoryStore';
-import { initializeFavorites } from './stores/FavoritesStore';
-import { initializeAccount } from './stores/AccountStore';
+import type { Config } from '#types/Config';
+import Router from '#src/components/Router/Router';
+import Root from '#src/components/Root/Root';
+import LoadingOverlay from '#src/components/LoadingOverlay/LoadingOverlay';
+import QueryProvider from '#src/providers/QueryProvider';
+import { restoreWatchHistory } from '#src/stores/WatchHistoryController';
+import { initializeAccount } from '#src/stores/AccountController';
+import { initializeFavorites } from '#src/stores/FavoritesController';
+import { logDev } from '#src/utils/common';
+import { loadAndValidateConfig } from '#src/utils/configLoad';
+import { clearStoredConfig } from '#src/utils/configOverride';
+import { Shelf } from '#src/enum/PersonalShelf';
+import '#src/i18n/config';
+import '#src/styles/main.scss';
 
 interface State {
   error: Error | null;
+  isLoading: boolean;
 }
 
 class App extends Component {
   public state: State = {
     error: null,
+    isLoading: false,
   };
 
   componentDidCatch(error: Error) {
     this.setState({ error });
   }
 
-  initializeServices(config: Config) {
-    if (config.options.enableContinueWatching) {
-      restoreWatchHistory();
+  async initializeServices(config: Config) {
+    if (config?.integrations?.cleeng?.id) {
+      await initializeAccount();
     }
 
-    initializeFavorites();
+    // We only request favorites, continue_watching or recommendations data if there is a corresponding content item
+    // We first initialize the account otherwise if we have favorites saved as externalData and in a local storage the sections may blink
+    if (config.content.some((el) => el.type === Shelf.ContinueWatching || el.type === Shelf.Recommendations)) {
+      await restoreWatchHistory();
+    }
 
-    if (config.cleengId) {
-      initializeAccount();
+    if (config.content.some((el) => el.type === Shelf.Favorites)) {
+      await initializeFavorites();
     }
   }
 
   configLoadingHandler = (isLoading: boolean) => {
-    console.info(`Loading config: ${isLoading}`);
+    this.setState({ isLoading });
+    logDev(`Loading config: ${isLoading}`);
   };
 
   configErrorHandler = (error: Error) => {
     this.setState({ error });
-    console.info('Error while loading the config.json:', error);
+    this.setState({ isLoading: false });
+    clearStoredConfig();
+    logDev('Error while loading the config.json:', error);
   };
 
-  configValidationCompletedHandler = (config: Config) => {
-    this.initializeServices(config);
+  configValidationCompletedHandler = async (config: Config) => {
+    this.setState({ isLoading: false });
+    await this.initializeServices(config);
   };
+
+  componentDidMount() {
+    loadAndValidateConfig(this.configLoadingHandler, this.configErrorHandler, this.configValidationCompletedHandler);
+  }
 
   render() {
+    const { isLoading, error } = this.state;
+
+    if (isLoading) {
+      return <LoadingOverlay />;
+    }
+
     return (
       <I18nextProvider i18n={getI18n()}>
         <QueryProvider>
-          <ConfigProvider
-            configLocation={window.configLocation || './config.json'}
-            onLoading={this.configLoadingHandler}
-            onValidationError={this.configErrorHandler}
-            onValidationCompleted={this.configValidationCompletedHandler}
-          >
-            <Router>
-              <Root error={this.state.error} />
-            </Router>
-          </ConfigProvider>
+          <Router>
+            <Root error={error} />
+          </Router>
         </QueryProvider>
       </I18nextProvider>
     );

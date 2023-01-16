@@ -1,17 +1,20 @@
+import { get, post, patch } from './cleeng.service';
+
 import type {
   CreateOrder,
+  GetEntitlements,
   GetOffer,
   GetPaymentMethods,
   PaymentWithAdyen,
   PaymentWithoutDetails,
   PaymentWithPayPal,
   UpdateOrder,
-} from '../../types/checkout';
-
-import { get, post, patch } from './cleeng.service';
+} from '#types/checkout';
+import { getOverrideIP, IS_DEV_BUILD } from '#src/utils/common';
 
 export const getOffer: GetOffer = async (payload, sandbox) => {
-  return get(sandbox, `/offers/${payload.offerId}`);
+  // @ts-ignore
+  return get(sandbox, `/offers/${payload.offerId}${IS_DEV_BUILD && getOverrideIP() ? '?customerIP=' + getOverrideIP() : ''}`);
 };
 
 export const createOrder: CreateOrder = async (payload, sandbox, jwt) => {
@@ -31,9 +34,17 @@ export const paymentWithoutDetails: PaymentWithoutDetails = async (payload, sand
 };
 
 export const paymentWithAdyen: PaymentWithAdyen = async (payload, sandbox, jwt) => {
+  if (IS_DEV_BUILD) {
+    // @ts-ignore
+    payload.customerIP = getOverrideIP();
+  }
   return post(sandbox, '/connectors/adyen/payments', JSON.stringify(payload), jwt);
 };
 
 export const paymentWithPayPal: PaymentWithPayPal = async (payload, sandbox, jwt) => {
   return post(sandbox, '/connectors/paypal/v1/tokens', JSON.stringify(payload), jwt);
+};
+
+export const getEntitlements: GetEntitlements = async (payload, sandbox, jwt = '') => {
+  return get(sandbox, `/entitlements/${payload.offerId}`, jwt);
 };
