@@ -1,7 +1,7 @@
-@use '../../styles/variables';
-@use '../../styles/theme';
-@use '../../styles/mixins/responsive';
-@use '../../styles/mixins/utils';
+@use 'src/styles/variables';
+@use 'src/styles/theme';
+@use 'src/styles/mixins/responsive';
+@use 'src/styles/mixins/utils';
 
 //
 // Header
@@ -118,7 +118,7 @@
 
 .buttonContainer {
   > button:first-child {
-    margin-right: variables.$base-spacing / 2;
+    margin-right: calc(#{variables.$base-spacing} / 2);
     margin-left: variables.$base-spacing;
   }
 }

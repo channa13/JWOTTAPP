@@ -1,14 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { useHistory } from 'react-router';
-
-import Dialog from '../../components/Dialog/Dialog';
-import useQueryParam from '../../hooks/useQueryParam';
-import { addQueryParam, removeQueryParam } from '../../utils/history';
-import PaymentFailed from '../../components/PaymentFailed/PaymentFailed';
-import Welcome from '../../components/Welcome/Welcome';
-import { AccountStore } from '../../stores/AccountStore';
-import LoadingOverlay from '../../components/LoadingOverlay/LoadingOverlay';
-import { ConfigStore } from '../../stores/ConfigStore';
+import { useLocation, useNavigate } from 'react-router';
+import shallow from 'zustand/shallow';
 
 import styles from './AccountModal.module.scss';
 import Login from './forms/Login';
@@ -21,15 +13,25 @@ import CancelSubscription from './forms/CancelSubscription';
 import RenewSubscription from './forms/RenewSubscription';
 import EditPassword from './forms/EditPassword';
 
+import { useConfigStore } from '#src/stores/ConfigStore';
+import { useAccountStore } from '#src/stores/AccountStore';
+import useQueryParam from '#src/hooks/useQueryParam';
+import LoadingOverlay from '#components/LoadingOverlay/LoadingOverlay';
+import Welcome from '#components/Welcome/Welcome';
+import PaymentFailed from '#components/PaymentFailed/PaymentFailed';
+import Dialog from '#components/Dialog/Dialog';
+import { addQueryParam, removeQueryParam } from '#src/utils/location';
+
 const PUBLIC_VIEWS = ['login', 'create-account', 'forgot-password', 'reset-password', 'send-confirmation', 'edit-password'];
 
 const AccountModal = () => {
-  const history = useHistory();
+  const navigate = useNavigate();
+  const location = useLocation();
   const viewParam = useQueryParam('u');
   const [view, setView] = useState(viewParam);
   const message = useQueryParam('message');
-  const { loading, auth } = AccountStore.useState((s) => s);
-  const config = ConfigStore.useState((s) => s.config);
+  const { loading, auth } = useAccountStore(({ loading, auth }) => ({ loading, auth }), shallow);
+  const config = useConfigStore((s) => s.config);
   const {
     assets: { banner },
     siteName,
@@ -43,12 +45,12 @@ const AccountModal = () => {
 
   useEffect(() => {
     if (!!viewParam && !loading && !auth && !isPublicView) {
-      history.push(addQueryParam(history, 'u', 'login'));
+      navigate(addQueryParam(location, 'u', 'login'));
     }
-  }, [viewParam, history, loading, auth, isPublicView]);
+  }, [viewParam, navigate, location, loading, auth, isPublicView]);
 
   const closeHandler = () => {
-    history.push(removeQueryParam(history, 'u'));
+    navigate(removeQueryParam(location, 'u'));
   };
 
   const renderForm = () => {

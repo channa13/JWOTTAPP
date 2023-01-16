@@ -1,29 +1,31 @@
-import { useCallback, useRef } from 'react';
-import { useHistory } from 'react-router';
+import { useCallback } from 'react';
+import { useNavigate } from 'react-router';
 
-import { debounce } from '../utils/common';
-import { UIStore } from '../stores/UIStore';
+import { useUIStore } from '#src/stores/UIStore';
+import useDebounce from '#src/hooks/useDebounce';
 
 const useSearchQueryUpdater = () => {
-  const history = useHistory();
+  const navigate = useNavigate();
 
-  const updateSearchPath = useRef(
-    debounce((query: string) => {
-      history.push(`/q/${encodeURIComponent(query)}`);
-    }, 250),
-  );
+  const updateSearchPath = useDebounce((query: string) => {
+    navigate(`/q/${encodeURIComponent(query)}`);
+  }, 350);
   const updateSearchQuery = useCallback((query: string) => {
-    UIStore.update((state) => {
-      state.searchQuery = query;
+    useUIStore.setState({
+      searchQuery: query,
     });
-    updateSearchPath.current(query);
+    updateSearchPath(query);
   }, []);
   const resetSearchQuery = useCallback(() => {
-    UIStore.update((state) => {
-      state.searchQuery = '';
+    const returnPage = useUIStore.getState().preSearchPage;
+
+    useUIStore.setState({
+      searchQuery: '',
+      preSearchPage: undefined,
     });
-    history.push('/');
-  }, [history]);
+
+    navigate(returnPage || '/');
+  }, [navigate]);
 
   return { updateSearchQuery, resetSearchQuery };
 };

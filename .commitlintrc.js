@@ -2,7 +2,9 @@ module.exports = {
   extends: ['@commitlint/config-conventional'],
   rules: {
     'scope-enum': [
-      2, 'always', [
+      2,
+      'always',
+      [
         'project',
         'home',
         'playlist',
@@ -19,6 +21,13 @@ module.exports = {
         'auth',
         'menu',
         'payment',
+        'e2e',
+        'signing',
+        'entitlement',
+        'inlineplayer',
+        'config',
+        'epg',
+        'tests',
       ],
     ],
   },

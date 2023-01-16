@@ -1,181 +1,115 @@
-import React, { useCallback, useContext, useEffect, useRef, useState } from 'react';
-import type { Config } from 'types/Config';
-import type { PlaylistItem } from 'types/playlist';
-import type { VideoProgress } from 'types/video';
-import type { JWPlayer } from 'types/jwplayer';
-import classNames from 'classnames';
-
-import { VideoProgressMinMax } from '../../config';
-import { useWatchHistoryListener } from '../../hooks/useWatchHistoryListener';
-import { watchHistoryStore, useWatchHistory } from '../../stores/WatchHistoryStore';
-import { ConfigContext } from '../../providers/ConfigProvider';
-import { addScript } from '../../utils/dom';
-import useOttAnalytics from '../../hooks/useOttAnalytics';
-import { deepCopy } from '../../utils/collection';
+import React, { useCallback, useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 
 import styles from './Cinema.module.scss';
 
+import type { PlaylistItem } from '#types/playlist';
+import Fade from '#components/Animation/Fade/Fade';
+import IconButton from '#components/IconButton/IconButton';
+import ArrowLeft from '#src/icons/ArrowLeft';
+import PlayerContainer from '#src/containers/PlayerContainer/PlayerContainer';
+
 type Props = {
+  open: boolean;
   item: PlaylistItem;
   onPlay?: () => void;
   onPause?: () => void;
   onComplete?: () => void;
-  onUserActive?: () => void;
-  onUserInActive?: () => void;
+  onClose?: () => void;
   feedId?: string;
-  isTrailer?: boolean;
-  playerId?: string;
+  title: string;
+  primaryMetadata: React.ReactNode;
+  secondaryMetadata?: React.ReactNode;
+  liveStartDateTime?: string | null;
+  liveEndDateTime?: string | null;
+  liveFromBeginning?: boolean;
 };
 
-const Cinema: React.FC<Props> = ({ item, onPlay, onPause, onComplete, onUserActive, onUserInActive, feedId, isTrailer = false }: Props) => {
-  const config: Config = useContext(ConfigContext);
-  const playerElementRef = useRef<HTMLDivElement>(null);
-  const playerRef = useRef<JWPlayer>();
-  const loadingRef = useRef(false);
-  const seekToRef = useRef(-1);
-  const [libLoaded, setLibLoaded] = useState(!!window.jwplayer);
-  const scriptUrl = `https://content.jwplatform.com/libraries/${config.player}.js`;
-  const enableWatchHistory = config.options.enableContinueWatching && !isTrailer;
-  const setPlayer = useOttAnalytics(item, feedId);
+const Cinema: React.FC<Props> = ({
+  open,
+  item,
+  title,
+  primaryMetadata,
+  secondaryMetadata,
+  onPlay,
+  onPause,
+  onComplete,
+  onClose,
+  feedId,
+  liveStartDateTime,
+  liveEndDateTime,
+  liveFromBeginning,
+}: Props) => {
+  const { t } = useTranslation();
 
-  const getProgress = (): VideoProgress | null => {
-    if (!playerRef.current) return null;
+  // state
+  const [isPlaying, setIsPlaying] = useState<boolean>(false);
+  const [userActive, setUserActive] = useState(true);
 
-    const duration = playerRef.current.getDuration();
-    const progress = playerRef.current.getPosition() / duration;
-
-    return { duration, progress } as VideoProgress;
-  };
-
-  const { saveItem } = useWatchHistory();
-  useWatchHistoryListener(() => (enableWatchHistory ? saveItem(item, getProgress) : null));
-
-  const handlePlay = useCallback(() => onPlay && onPlay(), [onPlay]);
+  const handlePlay = useCallback(() => {
+    setIsPlaying(true);
+    onPlay && onPlay();
+  }, [onPlay]);
 
   const handlePause = useCallback(() => {
-    enableWatchHistory && saveItem(item, getProgress);
+    setIsPlaying(false);
     onPause && onPause();
-  }, [enableWatchHistory, item, onPause, saveItem]);
+  }, [onPause]);
 
   const handleComplete = useCallback(() => {
-    enableWatchHistory && saveItem(item, getProgress);
     onComplete && onComplete();
-  }, [enableWatchHistory, item, onComplete, saveItem]);
+  }, [onComplete]);
 
-  const handleUserActive = useCallback(() => onUserActive && onUserActive(), [onUserActive]);
+  const handleUserActive = useCallback(() => setUserActive(true), []);
+  const handleUserInactive = useCallback(() => setUserActive(false), []);
 
-  const handleUserInactive = useCallback(() => onUserInActive && onUserInActive(), [onUserInActive]);
-
+  // effects
   useEffect(() => {
-    if (!playerRef.current) return;
-
-    playerRef.current.on('complete', handleComplete);
-    playerRef.current.on('play', handlePlay);
-    playerRef.current.on('pause', handlePause);
-    playerRef.current.on('userActive', handleUserActive);
-    playerRef.current.on('userInactive', handleUserInactive);
+    if (open) {
+      setUserActive(true);
+      document.body.style.overflowY = 'hidden';
+    }
 
     return () => {
-      playerRef.current?.off('complete', handleComplete);
-      playerRef.current?.off('play', handlePlay);
-      playerRef.current?.off('pause', handlePause);
-      playerRef.current?.off('userActive', handleUserActive);
-      playerRef.current?.off('userInactive', handleUserInactive);
+      document.body.style.overflowY = '';
     };
-  }, [handleComplete, handlePause, handlePlay, handleUserActive, handleUserInactive]);
-
-  useEffect(() => {
-    if (!window.jwplayer && !loadingRef.current) {
-      loadingRef.current = true;
-
-      addScript(scriptUrl).then(() => {
-        setLibLoaded(true);
-        loadingRef.current = false;
-      });
-    }
-  }, [scriptUrl]);
-
-  useEffect(() => {
-    if (!config.player) {
-      return;
-    }
-
-    const calculateWatchHistoryProgress = () => {
-      const { watchHistory } = watchHistoryStore.getRawState();
-      const watchHistoryItem = watchHistory.find(({ mediaid }) => mediaid === item.mediaid);
-
-      if (watchHistoryItem && enableWatchHistory && watchHistoryItem.progress > VideoProgressMinMax.Min && watchHistoryItem.progress < VideoProgressMinMax.Max) {
-        seekToRef.current = watchHistoryItem.progress * watchHistoryItem.duration;
-      } else {
-        seekToRef.current = -1;
-      }
-    };
-
-    const loadPlaylist = () => {
-      if (!item || !playerRef.current) {
-        return;
-      }
-
-      const currentItem = playerRef.current?.getPlaylistItem() as PlaylistItem | null;
-
-      // we already loaded this item
-      if (currentItem && currentItem.mediaid === item.mediaid) {
-        return;
-      }
-
-      // load new item
-      playerRef.current.load([deepCopy(item)]);
-      calculateWatchHistoryProgress();
-    };
-
-    const initializePlayer = () => {
-      if (!window.jwplayer || !playerElementRef.current) return;
-
-      playerRef.current = window.jwplayer(playerElementRef.current);
-
-      playerRef.current.setup({
-        playlist: [deepCopy(item)],
-        aspect: false,
-        width: '100%',
-        height: '100%',
-        mute: false,
-        autostart: true,
-      });
-
-      calculateWatchHistoryProgress();
-      setPlayer(playerRef.current);
-
-      const handleBeforePlay = () => {
-        if (seekToRef.current > 0) {
-          playerRef.current?.seek(seekToRef.current);
-          seekToRef.current = -1;
-        }
-      };
-
-      playerRef.current.on('beforePlay', handleBeforePlay);
-    };
-
-    if (playerRef.current) {
-      return loadPlaylist();
-    }
-
-    if (libLoaded) {
-      initializePlayer();
-    }
-  }, [libLoaded, item, onPlay, onPause, onUserActive, onUserInActive, onComplete, config.player, enableWatchHistory, setPlayer, saveItem]);
-
-  useEffect(() => {
-    return () => {
-      if (playerRef.current) {
-        playerRef.current.remove();
-      }
-    };
-  }, []);
+  }, [open]);
 
   return (
-    <div className={classNames(styles.cinema, { [styles.fill]: !isTrailer })}>
-      <div ref={playerElementRef} />
-    </div>
+    <Fade open={open} className={styles.fade}>
+      <div className={styles.cinema}>
+        <PlayerContainer
+          item={item}
+          feedId={feedId}
+          autostart={true}
+          onPlay={handlePlay}
+          onPause={handlePause}
+          onComplete={handleComplete}
+          onUserActive={handleUserActive}
+          onUserInActive={handleUserInactive}
+          liveEndDateTime={liveEndDateTime}
+          liveFromBeginning={liveFromBeginning}
+          liveStartDateTime={liveStartDateTime}
+        />
+
+        <Fade open={!isPlaying || userActive}>
+          <div className={styles.playerOverlay}>
+            <div className={styles.playerContent}>
+              <IconButton aria-label={t('common:back')} onClick={onClose} className={styles.backButton}>
+                <ArrowLeft />
+              </IconButton>
+              <div>
+                <h2 className={styles.title}>{title}</h2>
+                <div className={styles.metaContainer}>
+                  {secondaryMetadata && <div className={styles.secondaryMetadata}>{secondaryMetadata}</div>}
+                  <div className={styles.primaryMetadata}>{primaryMetadata}</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </Fade>
+      </div>
+    </Fade>
   );
 };
 

@@ -1,22 +1,23 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Vitest Snapshot v1
 
-exports[`<UserMenu> renders and matches snapshot 1`] = `
+exports[`<UserMenu> > renders and matches snapshot 1`] = `
 <div>
   <ul
-    class="menuItems"
+    class="_menuItems_457528"
   >
     <li>
       <a
-        class="menuButton"
+        aria-label="nav.account"
+        class="_menuButton_91706b"
         href="/u/my-account"
         tabindex="0"
       >
         <div
-          class="startIcon"
+          class="_startIcon_91706b"
         >
           <svg
             aria-hidden="true"
-            class="icon"
+            class="_icon_1e9999"
             focusable="false"
             viewBox="0 0 24 24"
             xmlns="http://www.w3.org/2000/svg"
@@ -35,16 +36,17 @@ exports[`<UserMenu> renders and matches snapshot 1`] = `
     </li>
     <li>
       <a
-        class="menuButton"
+        aria-label="nav.favorites"
+        class="_menuButton_91706b"
         href="/u/favorites"
         tabindex="0"
       >
         <div
-          class="startIcon"
+          class="_startIcon_91706b"
         >
           <svg
             aria-hidden="true"
-            class="icon"
+            class="_icon_1e9999"
             focusable="false"
             viewBox="0 0 24 24"
             xmlns="http://www.w3.org/2000/svg"
@@ -63,16 +65,17 @@ exports[`<UserMenu> renders and matches snapshot 1`] = `
     </li>
     <li>
       <a
-        class="menuButton"
+        aria-label="nav.payments"
+        class="_menuButton_91706b"
         href="/u/payments"
         tabindex="0"
       >
         <div
-          class="startIcon"
+          class="_startIcon_91706b"
         >
           <svg
             aria-hidden="true"
-            class="icon"
+            class="_icon_1e9999"
             focusable="false"
             viewBox="0 0 24 24"
             xmlns="http://www.w3.org/2000/svg"
@@ -90,20 +93,20 @@ exports[`<UserMenu> renders and matches snapshot 1`] = `
       </a>
     </li>
     <hr
-      class="divider"
+      class="_divider_457528"
     />
     <li>
-      <a
-        class="menuButton"
-        href="/u/logout"
+      <div
+        aria-label="nav.logout"
+        class="_menuButton_91706b"
         tabindex="0"
       >
         <div
-          class="startIcon"
+          class="_startIcon_91706b"
         >
           <svg
             aria-hidden="true"
-            class="icon"
+            class="_icon_1e9999"
             focusable="false"
             viewBox="0 0 24 24"
             xmlns="http://www.w3.org/2000/svg"
@@ -118,7 +121,7 @@ exports[`<UserMenu> renders and matches snapshot 1`] = `
         <span>
           nav.logout
         </span>
-      </a>
+      </div>
     </li>
   </ul>
 </div>

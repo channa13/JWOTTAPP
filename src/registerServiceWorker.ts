@@ -8,6 +8,9 @@
 // To learn more about the benefits of this model, read https://goo.gl/KwvDNy.
 // This link also includes instructions on opting out of this behavior.
 
+import { getPublicUrl } from './utils/domHelpers';
+import { logDev } from './utils/common';
+
 const isLocalhost = Boolean(
   window.location.hostname === 'localhost' ||
     // [::1] is the IPv6 localhost address.
@@ -19,7 +22,7 @@ const isLocalhost = Boolean(
 export default function register() {
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
-      const swUrl = '/service-worker.js';
+      const swUrl = '/sw.js';
 
       if (!isLocalhost) {
         // Is not local host. Just register service worker
@@ -48,7 +51,7 @@ function registerValidSW(swUrl: string) {
   }
 
   navigator.serviceWorker
-    .register(swUrl)
+    .register(getPublicUrl(swUrl))
     .then((registration) => {
       registration.onupdatefound = () => {
         const installingWorker = registration.installing;
@@ -69,7 +72,7 @@ function registerValidSW(swUrl: string) {
               window.dispatchEvent(event);
             }
           } else {
-            console.info('Service worker ready');
+            logDev('Service worker ready');
           }
         };
 
@@ -81,13 +84,13 @@ function registerValidSW(swUrl: string) {
       };
     })
     .catch((error) => {
-      console.error('Error during service worker registration:', error);
+      logDev('Error during service worker registration:', error);
     });
 }
 
 function checkValidServiceWorker(swUrl: string) {
   // Check if the service worker can be found. If it can't reload the page.
-  fetch(swUrl)
+  fetch(getPublicUrl(swUrl))
     .then((response) => {
       // Ensure service worker exists, and that we really are getting a JS file.
       if (response.status === 404 || response.headers.get('content-type')?.indexOf('javascript') === -1) {
@@ -105,12 +108,4 @@ function checkValidServiceWorker(swUrl: string) {
     .catch(() => {
       console.info('No internet connection found. App is running in offline mode.');
     });
-}
-
-export function unregister() {
-  if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.ready.then((registration) => {
-      registration.unregister();
-    });
-  }
 }

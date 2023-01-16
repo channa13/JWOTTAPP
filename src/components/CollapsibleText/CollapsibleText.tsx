@@ -1,11 +1,11 @@
 import classNames from 'classnames';
 import React, { useEffect, useRef, useState } from 'react';
 
-import useBreakpoint from '../../hooks/useBreakpoint';
-import IconButton from '../IconButton/IconButton';
-import ChevronRight from '../../icons/ChevronRight';
-
 import styles from './CollapsibleText.module.scss';
+
+import IconButton from '#components/IconButton/IconButton';
+import ChevronRight from '#src/icons/ChevronRight';
+import useBreakpoint from '#src/hooks/useBreakpoint';
 
 type Props = {
   text: string;
@@ -26,8 +26,7 @@ const CollapsibleText: React.FC<Props> = ({ text, className, maxHeight = 'none' 
   useEffect(() => {
     divRef.current &&
       setDoesFlowOver(
-        divRef.current.scrollHeight > divRef.current.offsetHeight + clippablePixels ||
-          (maxHeight < divRef.current.offsetHeight && maxHeight !== 'none'),
+        divRef.current.scrollHeight > divRef.current.offsetHeight + clippablePixels || (maxHeight < divRef.current.offsetHeight && maxHeight !== 'none'),
       );
   }, [maxHeight, text, breakpoint]);
 
@@ -41,11 +40,7 @@ const CollapsibleText: React.FC<Props> = ({ text, className, maxHeight = 'none' 
         {text}
       </div>
       {doesFlowOver && (
-        <IconButton
-          aria-label={ariaLabel}
-          className={classNames(styles.chevron, { [styles.expanded]: expanded })}
-          onClick={() => setExpanded(!expanded)}
-        >
+        <IconButton aria-label={ariaLabel} className={classNames(styles.chevron, { [styles.expanded]: expanded })} onClick={() => setExpanded(!expanded)}>
           <ChevronRight />
         </IconButton>
       )}

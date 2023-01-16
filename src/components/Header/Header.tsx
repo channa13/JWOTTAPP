@@ -2,26 +2,27 @@ import React, { ReactFragment, useState } from 'react';
 import classNames from 'classnames';
 import { useTranslation } from 'react-i18next';
 
-import AccountCircle from '../../icons/AccountCircle';
-import SearchBar, { Props as SearchBarProps } from '../SearchBar/SearchBar';
-import Logo from '../Logo/Logo';
-import Menu from '../../icons/Menu';
-import SearchIcon from '../../icons/Search';
-import CloseIcon from '../../icons/Close';
-import IconButton from '../../components/IconButton/IconButton';
-import useBreakpoint, { Breakpoint } from '../../hooks/useBreakpoint';
-import Button from '../Button/Button';
-import Popover from '../Popover/Popover';
-import UserMenu from '../UserMenu/UserMenu';
-
 import styles from './Header.module.scss';
+
+import AccountCircle from '#src/icons/AccountCircle';
+import SearchBar, { Props as SearchBarProps } from '#components/SearchBar/SearchBar';
+import Logo from '#components/Logo/Logo';
+import Menu from '#src/icons/Menu';
+import SearchIcon from '#src/icons/Search';
+import CloseIcon from '#src/icons/Close';
+import Button from '#components/Button/Button';
+import Popover from '#components/Popover/Popover';
+import UserMenu from '#components/UserMenu/UserMenu';
+import { getPublicUrl } from '#src/utils/domHelpers';
+import useBreakpoint, { Breakpoint } from '#src/hooks/useBreakpoint';
+import IconButton from '#components/IconButton/IconButton';
 
 type TypeHeader = 'static' | 'fixed';
 
 type Props = {
   headerType?: TypeHeader;
   onMenuButtonClick: () => void;
-  logoSrc?: string;
+  logoSrc?: string | null;
   searchBarProps: SearchBarProps;
   searchEnabled: boolean;
   searchActive: boolean;
@@ -131,11 +132,11 @@ const Header: React.FC<Props> = ({
         </div>
         {logoSrc && (
           <div className={styles.brand}>
-            <Logo src={logoSrc} onLoad={() => setLogoLoaded(true)} />
+            <Logo src={getPublicUrl(logoSrc)} onLoad={() => setLogoLoaded(true)} />
           </div>
         )}
         <nav className={styles.nav} aria-label="menu">
-          {logoLoaded ? children : null}
+          {logoLoaded || !logoSrc ? children : null}
         </nav>
         <div className={styles.search}>{searchEnabled ? search : null}</div>
         {renderUserActions()}

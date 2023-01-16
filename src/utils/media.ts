@@ -1,4 +1,6 @@
-import type { PlaylistItem } from '../../types/playlist';
+import type { Playlist, PlaylistItem } from '#types/playlist';
+
+type RequiredProperties<T, P extends keyof T> = T & Required<Pick<T, P>>;
 
 type DeprecatedPlaylistItem = {
   seriesPlayListId?: string;
@@ -13,6 +15,9 @@ export const getSeriesId = (item: PlaylistItem & DeprecatedPlaylistItem) => {
   return item['seriesPlayListId'] || item.seriesPlaylistId || item.seriesId;
 };
 
+export const isPlaylist = (item: unknown): item is Playlist => !!item && typeof item === 'object' && 'feedid' in item;
+export const isPlaylistItem = (item: unknown): item is PlaylistItem => !!item && typeof item === 'object' && 'mediaid' in item;
+
 export const isSeriesPlaceholder = (item: PlaylistItem) => {
   return typeof getSeriesId(item) !== 'undefined';
 };
@@ -21,7 +26,10 @@ export const isEpisode = (item: PlaylistItem) => {
   return item && typeof item.episodeNumber !== 'undefined';
 };
 
-export const getSeriesIdFromEpisode = (item: PlaylistItem) => {
+export const isLiveChannel = (item: PlaylistItem): item is RequiredProperties<PlaylistItem, 'contentType' | 'liveChannelsId'> =>
+  item.contentType === 'LiveChannel' && !!item.liveChannelsId;
+
+export const getSeriesIdFromEpisode = (item: PlaylistItem | undefined) => {
   if (!item || !isEpisode(item)) {
     return null;
   }
@@ -33,6 +41,10 @@ export const getSeriesIdFromEpisode = (item: PlaylistItem) => {
 
   if (seriesIdTag) {
     return seriesIdTag.split('_')[1];
+  }
+
+  if (item.seriesId) {
+    return item.seriesId;
   }
 
   return null;

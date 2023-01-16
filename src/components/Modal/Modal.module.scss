@@ -1,11 +1,12 @@
-@use '../../styles/variables';
-@use '../../styles/theme';
-@use '../../styles/mixins/responsive';
+@use 'src/styles/variables';
+@use 'src/styles/theme';
+@use 'src/styles/mixins/responsive';
 
 .modal {
   position: fixed;
   top: 0;
   left: 0;
+  z-index: variables.$modals-z-index;
   width: 100vw;
   height: calc(100vh - calc(100vh - 100%));
 }

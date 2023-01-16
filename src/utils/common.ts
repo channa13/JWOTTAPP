@@ -1,10 +1,11 @@
+import { overrideIPCookieKey } from '#test/constants';
+
 export function debounce<T extends (...args: any[]) => void>(callback: T, wait = 200) {
   let timeout: NodeJS.Timeout | null;
-  const callable = (...args: unknown[]) => {
+  return (...args: unknown[]) => {
     if (timeout) clearTimeout(timeout);
     timeout = setTimeout(() => callback(...args), wait);
   };
-  return callable;
 }
 
 /**
@@ -48,4 +49,36 @@ export function calculateContrastColor(color: string) {
 
   // http://stackoverflow.com/a/3943023/112731
   return rgb.r * 0.299 + rgb.g * 0.587 + rgb.b * 0.114 > 186 ? '#000000' : '#FFFFFF';
+}
+
+// Build is either Development or Production
+// Mode can be dev, jwdev, demo, test, prod, etc.
+export const IS_DEVELOPMENT_BUILD = import.meta.env.DEV;
+export const IS_DEMO_MODE = import.meta.env.MODE === 'demo';
+export const IS_TEST_MODE = import.meta.env.MODE === 'test';
+
+export function logDev(message: unknown, ...optionalParams: unknown[]) {
+  if (IS_DEVELOPMENT_BUILD) {
+    if (optionalParams.length > 0) {
+      console.info(message, optionalParams);
+    } else {
+      console.info(message);
+    }
+  }
+}
+
+export function getOverrideIP() {
+  if (!IS_TEST_MODE && !IS_DEVELOPMENT_BUILD) {
+    return undefined;
+  }
+
+  return document.cookie
+    .split(';')
+    .find((s) => s.trim().startsWith(`${overrideIPCookieKey}=`))
+    ?.split('=')[1]
+    .trim();
+}
+
+export function testId(value: string | undefined) {
+  return IS_DEVELOPMENT_BUILD || IS_TEST_MODE ? value : undefined;
 }

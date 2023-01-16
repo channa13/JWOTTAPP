@@ -1,44 +1,51 @@
-import React, { FC, ReactNode, useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Helmet } from 'react-helmet';
 import { useTranslation } from 'react-i18next';
-import { useHistory } from 'react-router';
-
-import { AccountStore } from '../../stores/AccountStore';
-import useSearchQueryUpdater from '../../hooks/useSearchQueryUpdater';
-import { UIStore } from '../../stores/UIStore';
-import Button from '../../components/Button/Button';
-import MarkdownComponent from '../../components/MarkdownComponent/MarkdownComponent';
-import Header from '../../components/Header/Header';
-import Sidebar from '../../components/Sidebar/Sidebar';
-import DynamicBlur from '../../components/DynamicBlur/DynamicBlur';
-import MenuButton from '../../components/MenuButton/MenuButton';
-import { addQueryParam } from '../../utils/history';
-import UserMenu from '../../components/UserMenu/UserMenu';
-import { ConfigStore } from '../../stores/ConfigStore';
+import { Outlet, useLocation, useNavigate } from 'react-router';
+import shallow from 'zustand/shallow';
 
 import styles from './Layout.module.scss';
 
-type LayoutProps = {
-  children?: ReactNode;
-};
+import { useAccountStore } from '#src/stores/AccountStore';
+import { useUIStore } from '#src/stores/UIStore';
+import { useConfigStore } from '#src/stores/ConfigStore';
+import useSearchQueryUpdater from '#src/hooks/useSearchQueryUpdater';
+import useClientIntegration from '#src/hooks/useClientIntegration';
+import Button from '#components/Button/Button';
+import MarkdownComponent from '#components/MarkdownComponent/MarkdownComponent';
+import Header from '#components/Header/Header';
+import Sidebar from '#components/Sidebar/Sidebar';
+import DynamicBlur from '#components/DynamicBlur/DynamicBlur';
+import MenuButton from '#components/MenuButton/MenuButton';
+import UserMenu from '#components/UserMenu/UserMenu';
+import { addQueryParam } from '#src/utils/location';
 
-const Layout: FC<LayoutProps> = ({ children }) => {
-  const history = useHistory();
+const Layout = () => {
+  const location = useLocation();
+  const navigate = useNavigate();
   const { t } = useTranslation('common');
-  const config = ConfigStore.useState((s) => s.config);
-  const { menu, assets, options, siteName, description, footerText, searchPlaylist, cleengId } = config;
-  const accessModel = ConfigStore.useState((s) => s.accessModel);
-  const blurImage = UIStore.useState((s) => s.blurImage);
-  const searchQuery = UIStore.useState((s) => s.searchQuery);
-  const searchActive = UIStore.useState((s) => s.searchActive);
-  const userMenuOpen = UIStore.useState((s) => s.userMenuOpen);
+  const { config, accessModel } = useConfigStore(({ config, accessModel }) => ({ config, accessModel }), shallow);
+  const { menu, assets, siteName, description, styling, features } = config;
+  const { clientId } = useClientIntegration();
+  const { searchPlaylist } = features || {};
+  const { footerText, dynamicBlur } = styling || {};
+
+  const { blurImage, searchQuery, searchActive, userMenuOpen } = useUIStore(
+    ({ blurImage, searchQuery, searchActive, userMenuOpen }) => ({
+      blurImage,
+      searchQuery,
+      searchActive,
+      userMenuOpen,
+    }),
+    shallow,
+  );
   const { updateSearchQuery, resetSearchQuery } = useSearchQueryUpdater();
-  const isLoggedIn = !!AccountStore.useState((state) => state.user);
+  const isLoggedIn = !!useAccountStore((state) => state.user);
 
   const searchInputRef = useRef<HTMLInputElement>(null) as React.MutableRefObject<HTMLInputElement>;
 
   const [sideBarOpen, setSideBarOpen] = useState(false);
-  const hasDynamicBlur = options.dynamicBlur === true;
+  const hasDynamicBlur = dynamicBlur === true;
   const banner = assets.banner;
 
   useEffect(() => {
@@ -48,37 +55,38 @@ const Layout: FC<LayoutProps> = ({ children }) => {
   }, [searchActive]);
 
   const searchButtonClickHandler = () => {
-    UIStore.update((s) => {
-      s.searchActive = true;
+    useUIStore.setState({
+      searchActive: true,
+      preSearchPage: location,
     });
   };
 
   const closeSearchButtonClickHandler = () => {
     resetSearchQuery();
 
-    UIStore.update((s) => {
-      s.searchActive = false;
+    useUIStore.setState({
+      searchActive: false,
     });
   };
 
   const loginButtonClickHandler = () => {
-    history.push(addQueryParam(history, 'u', 'login'));
+    navigate(addQueryParam(location, 'u', 'login'));
   };
 
   const signUpButtonClickHandler = () => {
-    history.push(addQueryParam(history, 'u', 'create-account'));
+    navigate(addQueryParam(location, 'u', 'create-account'));
   };
 
   const toggleUserMenu = (value: boolean) =>
-    UIStore.update((state) => {
-      state.userMenuOpen = value;
+    useUIStore.setState({
+      userMenuOpen: value,
     });
 
   const renderUserActions = () => {
-    if (!cleengId) return null;
+    if (!clientId) return null;
 
     return isLoggedIn ? (
-      <UserMenu showPaymentsItem={accessModel === 'SVOD'} />
+      <UserMenu showPaymentsItem={accessModel !== 'AVOD'} />
     ) : (
       <div className={styles.buttonContainer}>
         <Button fullWidth onClick={loginButtonClickHandler} label={t('sign_in')} />
@@ -98,7 +106,7 @@ const Layout: FC<LayoutProps> = ({ children }) => {
         <meta name="twitter:description" content={description} />
       </Helmet>
       <div className={styles.main}>
-        {hasDynamicBlur && blurImage && <DynamicBlur url={blurImage} transitionTime={1} debounceTime={350} />}
+        {hasDynamicBlur && blurImage && <DynamicBlur image={blurImage} transitionTime={1} debounceTime={350} />}
         <Header
           onMenuButtonClick={() => setSideBarOpen(true)}
           logoSrc={banner}
@@ -117,29 +125,25 @@ const Layout: FC<LayoutProps> = ({ children }) => {
           isLoggedIn={isLoggedIn}
           userMenuOpen={userMenuOpen}
           toggleUserMenu={toggleUserMenu}
-          canLogin={!!cleengId}
-          showPaymentsMenuItem={accessModel === 'SVOD'}
+          canLogin={!!clientId}
+          showPaymentsMenuItem={accessModel !== 'AVOD'}
         >
           <Button label={t('home')} to="/" variant="text" />
           {menu.map((item) => (
-            <Button key={item.playlistId} label={item.label} to={`/p/${item.playlistId}`} variant="text" />
+            <Button key={item.contentId} label={item.label} to={`/p/${item.contentId}`} variant="text" />
           ))}
         </Header>
         <Sidebar isOpen={sideBarOpen} onClose={() => setSideBarOpen(false)}>
           <MenuButton label={t('home')} to="/" tabIndex={sideBarOpen ? 0 : -1} />
           {menu.map((item) => (
-            <MenuButton key={item.playlistId} label={item.label} to={`/p/${item.playlistId}`} tabIndex={sideBarOpen ? 0 : -1} />
+            <MenuButton key={item.contentId} label={item.label} to={`/p/${item.contentId}`} tabIndex={sideBarOpen ? 0 : -1} />
           ))}
           <hr className={styles.divider} />
           {renderUserActions()}
         </Sidebar>
-        {children}
+        <Outlet />
       </div>
-      {!!footerText && (
-        <div className={styles.footer}>
-          <MarkdownComponent markdownString={footerText} />
-        </div>
-      )}
+      {!!footerText && <MarkdownComponent className={styles.footer} markdownString={footerText} inline />}
     </div>
   );
 };

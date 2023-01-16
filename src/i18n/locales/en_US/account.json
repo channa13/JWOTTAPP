@@ -38,7 +38,6 @@
     "yearly": "Yearly subscription"
   },
   "choose_offer": {
-    "all_movies_and_series_of_platform": "All movies and series of {{siteName}}",
     "benefits": {
       "cancel_anytime": "Cancel anytime",
       "first_days_free": "First day free",
@@ -52,7 +51,12 @@
     "monthly": "Monthly",
     "monthly_subscription": "Monthly subscription",
     "offer_not_found": "Offer not found, please try reloading the page",
+    "one_time_only": "This video",
     "subscription": "Subscription",
+    "title": "Choose plan",
+    "tvod_access": "{{count}} {{period}} access",
+    "tvod_access_plural": "{{count}} {{period}} access",
+    "watch_this_on_platform": "Watch this on {{siteName}}",
     "yearly": "Yearly",
     "yearly_subscription": "Yearly subscription"
   },
@@ -99,8 +103,10 @@
   },
   "registration": {
     "already_account": "Already have an account?",
+    "consent_required": "This field is required",
     "continue": "Continue",
     "email": "Email",
+    "failed_to_create": "An error occurred. Please try again later.",
     "field_is_not_valid_email": "Please re-enter your email details",
     "field_required": "This field is required",
     "hide_password": "Hide password",
@@ -143,10 +149,14 @@
     "new_password": "New password",
     "no": "No, thanks",
     "not_sure": "Not sure that was the right email address?",
+    "old_password": "Old password",
     "password": "Password",
     "password_helper_text": "Use a minimum of 8 characters (case sensitive) with at least one number",
     "password_reset": "Password reset",
+    "passwords_do_not_match": "Passwords do not match",
+    "repeat_new_password": "Repeat new password",
     "reset_password": "Edit Password",
+    "reset_password_token": "Token",
     "text": "If you want to edit your password, click 'YES, Reset' to receive password reset instruction on your mail",
     "try_again": "Try again",
     "view_password": "View password",

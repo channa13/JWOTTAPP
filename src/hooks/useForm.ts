@@ -1,6 +1,7 @@
-import { useState } from 'react';
-import type { FormErrors, GenericFormValues, UseFormChangeHandler, UseFormBlurHandler, UseFormSubmitHandler } from 'types/form';
+import { useCallback, useState } from 'react';
 import { ValidationError, AnySchema } from 'yup';
+
+import type { FormErrors, GenericFormValues, UseFormChangeHandler, UseFormBlurHandler, UseFormSubmitHandler } from '#types/form';
 
 export type UseFormReturnValue<T> = {
   values: T;
@@ -52,9 +53,9 @@ export default function useForm<T extends GenericFormValues>(
     }
   };
 
-  const setValue = (name: keyof T, value: string | boolean) => {
+  const setValue = useCallback((name: keyof T, value: string | boolean) => {
     setValues((current) => ({ ...current, [name]: value }));
-  };
+  }, []);
 
   const handleChange: UseFormChangeHandler = (event) => {
     const name = event.target.name;
@@ -63,10 +64,10 @@ export default function useForm<T extends GenericFormValues>(
     const newValues = { ...values, [name]: value };
 
     setValues(newValues);
-    setTouched(current => ({ ...current, [name]: value }));
+    setTouched((current) => ({ ...current, [name]: value }));
 
     if (errors[name]) {
-      validateField(name, newValues)
+      validateField(name, newValues);
     }
   };
 

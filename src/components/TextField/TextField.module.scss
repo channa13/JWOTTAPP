@@ -1,15 +1,11 @@
-@use '../../styles/variables';
-@use '../../styles/theme';
+@use 'src/styles/variables';
+@use 'src/styles/theme';
 
 .textField {
   width: 100%;
   margin-bottom: 8px;
 
   &.error {
-    .helperText {
-      color: theme.$text-field-error-color;
-    }
-
     .container {
       border-color: theme.$text-field-error-color;
     }
@@ -91,10 +87,4 @@
       display: none;
     }
   }
-}
-
-.helperText {
-  margin-top: 4px;
-  font-size: 12px;
-  text-align: left;
 }

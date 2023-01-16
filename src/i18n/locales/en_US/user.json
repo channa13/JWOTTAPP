@@ -3,11 +3,20 @@
     "about_you": "About you",
     "cancel": "Cancel",
     "confirm_password": "Confirm password",
-    "delete_account": "Delete account",
     "edit_account": "Edit account",
     "edit_information": "Edit information",
     "edit_password": "Edit password",
     "email": "Email",
+    "errors": {
+      "email_exists": "Email already exists!",
+      "email_update_not_supported": "Email update not supported",
+      "first_name_too_long": "Please limit First Name to 50 characters or fewer.",
+      "invalid_param_email": "Invalid email address!",
+      "invalid_password": "Password incorrect!",
+      "last_name_too_long": "Please limit Last Name to 50 characters or fewer.",
+      "please_enter_valid_email": "Please enter a valid email address.",
+      "unknown_error": "An unknown error occurred"
+    },
     "firstname": "First name",
     "hide_password": "Hide password",
     "lastname": "Last name",
@@ -33,10 +42,12 @@
     "payments": "Payments"
   },
   "payment": {
+    "annual_subscription": "Annual subscription",
     "cancel_subscription": "Cancel subscription",
     "card_number": "Card number",
     "complete_subscription": "Complete subscription",
     "cvc_cvv": "CVC / CVV",
+    "daily_subscription": "Daily subscription",
     "expiry_date": "Expiry date",
     "hidden_transactions": "One more transaction",
     "hidden_transactions_plural": "{{count}} more transactions",
@@ -52,6 +63,7 @@
     "subscription_details": "Subscription details",
     "subscription_expires_on": "This plan will expire on {{date}}",
     "transactions": "Transactions",
+    "weekly_subscription": "Weekly subscription",
     "price_payed_with_card": "Price payed with card"
   }
 }

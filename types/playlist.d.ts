@@ -1,8 +1,19 @@
+import type { MediaOffer } from '#types/media';
+
+export type GetPlaylistParams = { page_limit?: string; related_media_id?: string; token?: string; search?: string };
+
+export type ImageData = {
+  image: string;
+  fallbackImage?: string;
+};
+
 export type Image = {
   src: string;
   type: string;
   width: number;
 };
+
+export type PosterMode = 'fading' | 'normal';
 
 export type Source = {
   file: string;
@@ -18,17 +29,18 @@ export type Track = {
 export type PlaylistItem = {
   description: string;
   duration: number;
-  episodeNumber?: string;
   feedid: string;
   image: string;
   images: Image[];
+  shelfImage?: ImageData;
+  backgroundImage?: ImageData;
+  channelLogoImage?: ImageData;
   link: string;
-  genre: string;
+  genre?: string;
   mediaid: string;
   pubdate: number;
-  rating: string;
+  rating?: string;
   requiresSubscription?: string | null;
-  seasonNumber?: string;
   sources: Source[];
   seriesId?: string;
   episodeNumber?: string;
@@ -36,8 +48,19 @@ export type PlaylistItem = {
   tags?: string;
   trailerId?: string;
   title: string;
-  tracks: Track[];
+  tracks?: Track[];
   variations?: Record<string, unknown>;
+  free?: string;
+  productIds?: string;
+  mediaOffers?: MediaOffer[] | null;
+  contentType?: string;
+  liveChannelsId?: string;
+  scheduleUrl?: string | null;
+  scheduleToken?: string;
+  scheduleDataFormat?: string;
+  scheduleDemo?: string;
+  catchupHours?: string;
+  [key: string]: unknown;
 };
 
 export type Link = {
@@ -53,11 +76,6 @@ export type Playlist = {
   links?: Link;
   playlist: PlaylistItem[];
   title: string;
-};
-
-export type Media = {
-  description?: string;
-  feed_instance_id: string;
-  kind: string;
-  playlist: PlaylistItem[];
+  contentType?: string;
+  [key: string]: unknown;
 };

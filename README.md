@@ -1,14 +1,35 @@
 ![JW OTT Webapp](./images/homepage-screenshot.png)
 
-JW OTT Webapp is an open-source, dynamically generated video website built around JW Player and JW Platform services. It enables you to easily publish your JW Player-hosted video content with no coding and minimal configuration.
+The JW OTT Webapp is an open-source, dynamically generated video website built around JW Player and JW Platform services. It enables you to easily publish your JW Player-hosted video content with no coding and minimal configuration.
 
-To see an example of JW OTT Webapp in action, see [https://jw-ott-webapp.netlify.app/](https://jw-ott-webapp.netlify.app/).
+To see an example of JW OTT Webapp in action, see [https://app-preview.jwplayer.com/](https://app-preview.jwplayer.com/).
+
+**Examples built using the JW OTT Webapp**
+
+<table>
+  <tr>
+    <td>
+      <p>Symphony <br/> (<a href="https://symphony.live/">symphony.live</a>)</p>
+      <img src="./images/symphony.png" alt="Symphony" height="200">
+    </td>
+    <td>
+      <p>FansChoice.tv  <br/> (<a href="https://www.fanschoice.tv/">fanschoice.tv</a>)</p>
+      <img src="./images/fanschoice.png" alt="FansChoice" height="200">
+    </td>
+    <td>
+      <p>Trinity Broadcasting Network  <br/> (<a href="https://watch.tbn.org/">watch.tbn.org</a>)</p>
+      <img src="./images/tbn.png" alt="TBN" height="200">
+    </td>
+  </tr>
+</table>
 
 ## Documentation
 
 - [Configure JW OTT Webapp](./docs/configuration.md)
 - [Contributing Guidelines](CONTRIBUTING.md)
 - [Frameworks, SDK's and Libraries](./docs/frameworks.md)
+- [Backend Services](./docs/backend-services.md)
+- [Developer Guidelines](./docs/developer-guidelines.md)
 
 ## Supported Features
 
@@ -25,12 +46,22 @@ To see an example of JW OTT Webapp in action, see [https://jw-ott-webapp.netlify
 - A "Favorites" feature for users to save videos for watching later. A separate list for "Continue Watching" is also kept so users can resume watching videos from where they left off. The lists are per-browser at this time (i.e., lists do not sync across user's browsers or devices). The "Continue Watching" list can be disabled in your JW OTT Webapp's `config.json` file.
 - A grid view for a particular playlist of videos, with the ability to deep-link to the playlist through a static URL.
 - Social sharing options using the device native sharing dialog.
+- 24x7 live channel(s) screen with Electronic Programming Guide (EPG) view.
 
-## Unsupported Features
+## Unsupported Feature(s)
 
-- Security-related features (encrypted HLS, DRM, signed URLs)
 - Self-hosted JW Players
+
+## Getting started
+
+- Clone this repository
+- Run `yarn` to install dependencies
+- Run `yarn start`
 
 ## Support and Bug Reporting
 
-To report bugs and feature requests, or request help using JW OTT Webapp, use this repository's [Issues](./issues) page.
+To report bugs and feature requests, or request help using JW OTT Webapp, use this repository's [Issues](https://github.com/jwplayer/ott-web-app/issues) page.
+
+## Software License
+
+This project is licensed under under the [Apache License, Version 2.0](https://www.apache.org/licenses/LICENSE-2.0).  See [LICENSE.txt](LICENSE.txt) for more details.

@@ -1,61 +1,89 @@
-import type { Config, Content, Options, Menu } from 'types/Config';
-import { string, boolean, array, object, SchemaOf } from 'yup';
+import { array, boolean, mixed, number, object, SchemaOf, string, StringSchema } from 'yup';
+import i18next from 'i18next';
 
-import { PersonalShelf } from '../enum/PersonalShelf';
+import type { Cleeng, InPlayer, Config, Content, Features, Menu, Styling } from '#types/Config';
 
 /**
  * Set config setup changes in both config.services.ts and config.d.ts
  * */
 
 const contentSchema: SchemaOf<Content> = object({
-  playlistId: string().defined(),
+  contentId: string().notRequired(),
+  title: string().notRequired(),
   featured: boolean().notRequired(),
   enableText: boolean().notRequired(),
+  backgroundColor: string().nullable().notRequired(),
+  type: mixed().oneOf(['playlist', 'continue_watching', 'favorites']),
 }).defined();
 
 const menuSchema: SchemaOf<Menu> = object().shape({
   label: string().defined(),
-  playlistId: string().defined(),
+  contentId: string().defined(),
   filterTags: string().notRequired(),
+  type: mixed().oneOf(['playlist']).notRequired(),
 });
 
-const optionsSchema: SchemaOf<Options> = object({
-  backgroundColor: string().nullable(),
-  highlightColor: string().nullable(),
-  enableContinueWatching: boolean().notRequired(),
-  headerBackground: string().notRequired(),
+const featuresSchema: SchemaOf<Features> = object({
   enableCasting: boolean().notRequired(),
   enableSharing: boolean().notRequired(),
+  recommendationsPlaylist: string().nullable(),
+  searchPlaylist: string().nullable(),
+  continueWatchingList: string().nullable(),
+  favoritesList: string().nullable(),
+});
+
+const cleengSchema: SchemaOf<Cleeng> = object({
+  id: string().nullable(),
+  monthlyOffer: string().nullable(),
+  yearlyOffer: string().nullable(),
+  useSandbox: boolean().default(true),
+});
+
+const inplayerSchema: SchemaOf<InPlayer> = object({
+  clientId: string().nullable(),
+  assetId: number().nullable(),
+  useSandbox: boolean().default(true),
+});
+
+const stylingSchema: SchemaOf<Styling> = object({
+  backgroundColor: string().nullable(),
+  highlightColor: string().nullable(),
+  headerBackground: string().nullable(),
   dynamicBlur: boolean().notRequired(),
   posterFading: boolean().notRequired(),
-  shelveTitles: boolean().notRequired(),
+  shelfTitles: boolean().notRequired(),
+  footerText: string().nullable(),
 });
 
 const configSchema: SchemaOf<Config> = object({
   id: string().notRequired(),
-  siteName: string().defined(),
+  siteName: string().notRequired(),
   description: string().defined(),
-  footerText: string().nullable(),
   player: string().defined(),
-  recommendationsPlaylist: string().nullable(),
-  searchPlaylist: string().nullable(),
   analyticsToken: string().nullable(),
   adSchedule: string().nullable(),
   assets: object({
-    banner: string().notRequired(),
-  }).defined(),
+    banner: string().notRequired().nullable(),
+  }).notRequired(),
   content: array().of(contentSchema),
   menu: array().of(menuSchema),
-  options: optionsSchema.notRequired(),
-  cleengId: string().nullable(),
-  cleengSandbox: boolean().default(true),
-  genres: array().of(string()).notRequired(),
-  json: object().notRequired(),
+  styling: stylingSchema.notRequired(),
+  features: featuresSchema.notRequired(),
+  integrations: object({
+    cleeng: cleengSchema.notRequired(),
+    inplayer: inplayerSchema.notRequired(),
+  }).notRequired(),
+  custom: object().notRequired(),
+  contentSigningService: object().shape({
+    // see {@link https://github.com/jquense/yup/issues/1367}
+    host: string().required() as StringSchema<string>,
+    drmPolicyId: string().notRequired(),
+  }),
 }).defined();
 
 const loadConfig = async (configLocation: string) => {
   if (!configLocation) {
-    return null;
+    throw new Error('No config location found');
   }
 
   const response = await fetch(configLocation, {
@@ -66,76 +94,26 @@ const loadConfig = async (configLocation: string) => {
   });
 
   if (!response.ok) {
-    throw new Error('Failed to load the config');
+    throw new Error('Failed to load the config. Please check the config path and the file availability.');
   }
 
   const data = await response.json();
 
-  addPersonalShelves(data);
-  addContentDefaultOptions(data);
-
-  if (data.version) {
-    return parseDeprecatedConfig(data);
+  if (!data) {
+    throw new Error('No config found');
   }
 
-  return data;
+  return enrichConfig(data);
 };
 
-/**
- * Add the personal shelves if not already defined: Favorites, ContinueWatching
- * @param {Config} data
- */
-const addPersonalShelves = (data: Config) => {
-  if (!data.content.some(({ playlistId }) => playlistId === PersonalShelf.Favorites)) {
-    data.content.push({ playlistId: PersonalShelf.Favorites });
-  }
+const enrichConfig = (config: Config): Config => {
+  const { content, siteName } = config;
+  const updatedContent = content.map((content) => Object.assign({ enableText: true, featured: false }, content));
 
-  if (data.options.enableContinueWatching) {
-    if (!data.content.some(({ playlistId }) => playlistId === PersonalShelf.ContinueWatching)) {
-      data.content.splice(1, 0, { playlistId: PersonalShelf.ContinueWatching });
-    }
-  }
+  return { ...config, siteName: siteName || i18next.t('common:default_site_name'), content: updatedContent };
 };
 
-/**
- * Add content default options
- * @param {Config} data
- */
-const addContentDefaultOptions = (data: Config) => {
-  data.content = data.content.map((content) => Object.assign({ enableText: true, featured: false }, content));
-};
-
-/**
- * Serialize deprecated config to v3 config
- * @param {Config} config
- * @returns {Config}
- */
-const parseDeprecatedConfig = (config: Config) => {
-  if (!config.description.startsWith('{')) {
-    return config;
-  }
-
-  try {
-    const { menu, id, analyticsToken, adSchedule, description, cleengId, cleengSandbox, ...options } = JSON.parse(config.description);
-
-    const updatedConfig = {
-      menu: menu || [],
-      id: id || 'showcase-id',
-      analyticsToken: analyticsToken || null,
-      adSchedule: adSchedule || null,
-      description: description || '',
-      cleengId,
-      cleengSandbox,
-      options: Object.assign(config.options, options),
-    };
-
-    return Object.assign(config, updatedConfig);
-  } catch (error: unknown) {
-    throw new Error('Failed to JSON parse the `description` property');
-  }
-};
-
-export const validateConfig = (config: Config): Promise<Config> => {
+export const validateConfig = (config?: Config): Promise<Config> => {
   return configSchema.validate(config, {
     strict: true,
   }) as Promise<Config>;

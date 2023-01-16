@@ -1,17 +1,17 @@
-@use '../../styles/variables';
-@use '../../styles/theme';
+@use 'src/styles/variables';
+@use 'src/styles/theme';
 
 .layout {
   display: flex;
+  flex-grow: 1;
   flex-direction: column;
-  min-height: calc(100vh - calc(100vh - 100%));
 }
 
 .main {
   flex: 1;
 }
 
-.footer {
+div.footer {
   padding: 20px 40px;
   line-height: 18px;
   letter-spacing: 0.15px;
@@ -39,6 +39,6 @@
   padding: 0 variables.$base-spacing;
 
   > button:first-child {
-    margin-bottom: variables.$base-spacing / 2;
+    margin-bottom: calc(#{variables.$base-spacing} / 2);
   }
 }

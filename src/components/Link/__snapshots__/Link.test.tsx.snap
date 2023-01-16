@@ -1,9 +1,9 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Vitest Snapshot v1
 
-exports[`<Link> renders and matches snapshot 1`] = `
+exports[`<Link> > renders and matches snapshot 1`] = `
 <div>
   <a
-    class="link"
+    class="_link_a14c64"
   />
 </div>
 `;

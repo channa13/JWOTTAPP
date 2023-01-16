@@ -1,41 +1,49 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import type { CaptureCustomAnswer, CleengCaptureQuestionField, PersonalDetailsFormData } from 'types/account';
 import { useTranslation } from 'react-i18next';
-import { useHistory } from 'react-router';
+import { useLocation, useNavigate } from 'react-router';
 import { mixed, object, string } from 'yup';
 import { useQuery } from 'react-query';
 
-import PersonalDetailsForm from '../../../components/PersonalDetailsForm/PersonalDetailsForm';
-import useForm, { UseFormOnSubmitHandler } from '../../../hooks/useForm';
-import { addQueryParam } from '../../../utils/history';
-import { getCaptureStatus, updateCaptureAnswers } from '../../../stores/AccountStore';
-import LoadingOverlay from '../../../components/LoadingOverlay/LoadingOverlay';
-import { ConfigStore } from '../../../stores/ConfigStore';
+import { useConfigStore } from '#src/stores/ConfigStore';
+import useForm, { UseFormOnSubmitHandler } from '#src/hooks/useForm';
+import PersonalDetailsForm from '#components/PersonalDetailsForm/PersonalDetailsForm';
+import LoadingOverlay from '#components/LoadingOverlay/LoadingOverlay';
+import { addQueryParam } from '#src/utils/location';
+import type { CaptureCustomAnswer, CleengCaptureQuestionField, PersonalDetailsFormData } from '#types/account';
+import { getCaptureStatus, updateCaptureAnswers } from '#src/stores/AccountController';
+import useOffers from '#src/hooks/useOffers';
 
 const yupConditional = (required: boolean, message: string) => {
   return required ? string().required(message) : mixed().notRequired();
 };
 
 const PersonalDetails = () => {
-  const history = useHistory();
+  const navigate = useNavigate();
+  const location = useLocation();
   const { t } = useTranslation('account');
-  const accessModel = ConfigStore.useState((s) => s.accessModel);
+  const accessModel = useConfigStore((s) => s.accessModel);
   const { data, isLoading } = useQuery('captureStatus', () => getCaptureStatus());
+  const { hasTVODOffers } = useOffers();
   const [questionValues, setQuestionValues] = useState<Record<string, string>>({});
   const [questionErrors, setQuestionErrors] = useState<Record<string, string>>({});
 
   const fields = useMemo(() => Object.fromEntries(data?.settings.map((item) => [item.key, item]) || []), [data]);
-  const questions = useMemo(() => data?.settings.filter((item) => !!(item as CleengCaptureQuestionField).question) as CleengCaptureQuestionField[] || [], [data]);
+  const questions = useMemo(
+    () => (data?.settings.filter((item) => !!(item as CleengCaptureQuestionField).question) as CleengCaptureQuestionField[]) || [],
+    [data],
+  );
 
   const nextStep = useCallback(() => {
-    history.replace(addQueryParam(history, 'u', accessModel === 'SVOD' ? 'choose-offer' : 'welcome'));
-  }, [history, accessModel]);
+    const hasOffers = accessModel === 'SVOD' || (accessModel === 'AUTHVOD' && hasTVODOffers);
+
+    navigate(addQueryParam(location, 'u', hasOffers ? 'choose-offer' : 'welcome'), { replace: true });
+  }, [navigate, location, accessModel, hasTVODOffers]);
 
   useEffect(() => {
     if (data && (!data.isCaptureEnabled || !data.shouldCaptureBeDisplayed)) nextStep();
 
     if (data && questions) {
-      setQuestionValues(Object.fromEntries(questions.map(question => [question.key, ''])))
+      setQuestionValues(Object.fromEntries(questions.map((question) => [question.key, ''])));
     }
   }, [data, nextStep, questions]);
 
@@ -102,7 +110,12 @@ const PersonalDetails = () => {
             .map((key) => [key, obj[key]]),
         );
       const customAnswers = questions.map(
-        (question) => ({ question: question.question, questionId: question.key, value: questionValues[question.key] } as CaptureCustomAnswer),
+        (question) =>
+          ({
+            question: question.question,
+            questionId: question.key,
+            value: questionValues[question.key],
+          } as CaptureCustomAnswer),
       );
       await updateCaptureAnswers(removeEmpty({ ...formData, customAnswers }));
 
@@ -116,10 +129,7 @@ const PersonalDetails = () => {
     setSubmitting(false);
   };
 
-  const { setValue, handleSubmit, handleChange, values, errors, submitting } = useForm<PersonalDetailsFormData>(
-    initialValues,
-    PersonalDetailSubmitHandler,
-  );
+  const { setValue, handleSubmit, handleChange, values, errors, submitting } = useForm<PersonalDetailsFormData>(initialValues, PersonalDetailSubmitHandler);
 
   if (isLoading) {
     return (

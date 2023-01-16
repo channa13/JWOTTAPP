@@ -1,8 +1,9 @@
 import React from 'react';
-import { render } from '@testing-library/react';
-import type { PlaylistItem } from 'types/playlist';
 
 import Cinema from './Cinema';
+
+import { renderWithRouter } from '#test/testUtils';
+import type { PlaylistItem } from '#types/playlist';
 
 describe('<Cinema>', () => {
   test('renders and matches snapshot', () => {
@@ -23,7 +24,9 @@ describe('<Cinema>', () => {
       title: 'Test item title',
       tracks: [],
     } as PlaylistItem;
-    const { container } = render(<Cinema item={item} onPlay={() => null} onPause={() => null} />);
+    const { container } = renderWithRouter(
+      <Cinema item={item} onPlay={() => null} onPause={() => null} open={true} title={item.title} primaryMetadata="Primary metadata" />,
+    );
 
     expect(container).toMatchSnapshot();
   });

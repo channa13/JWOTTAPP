@@ -1,15 +1,15 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Vitest Snapshot v1
 
-exports[`<NoPaymentRequired> renders and matches snapshot 1`] = `
+exports[`<NoPaymentRequired> > renders and matches snapshot 1`] = `
 <div>
   <div
-    class="noPaymentRequired"
+    class="_noPaymentRequired_b113e6"
   >
     <p>
       checkout.no_payment_needed
     </p>
     <button
-      class="button primary fullWidth large"
+      class="_button_f8f296 _primary_f8f296 _fullWidth_f8f296 _large_f8f296"
     >
       <span>
         checkout.continue

@@ -1,23 +1,20 @@
 import React from 'react';
-import { render } from '@testing-library/react';
-import type { Customer } from 'types/account';
-
-import customer from '../../fixtures/customer.json';
 
 import Account from './Account';
 
+import customer from '#test/fixtures/customer.json';
+import { useAccountStore } from '#src/stores/AccountStore';
+import { renderWithRouter } from '#test/testUtils';
+import type { Consent } from '#types/account';
+
 describe('<Account>', () => {
   test('renders and matches snapshot', () => {
-    const { container } = render(
-      <Account
-        customer={customer as Customer}
-        isLoading={false}
-        consentsLoading={false}
-        onUpdateEmailSubmit={() => null}
-        onUpdateInfoSubmit={() => null}
-        onUpdateConsentsSubmit={() => null}
-      />,
-    );
+    useAccountStore.setState({
+      user: customer,
+      publisherConsents: Array.of({ name: 'marketing', label: 'Receive Marketing Emails' } as Consent),
+    });
+
+    const { container } = renderWithRouter(<Account panelClassName={'panel-class'} panelHeaderClassName={'header-class'} canUpdateEmail={true} />);
 
     // todo
     expect(container).toMatchSnapshot();

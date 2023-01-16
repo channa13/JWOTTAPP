@@ -1,16 +1,16 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Vitest Snapshot v1
 
-exports[`<DialogBackButton> renders and matches snapshot 1`] = `
+exports[`<DialogBackButton> > renders and matches snapshot 1`] = `
 <div>
   <div
     aria-label="Go back"
-    class="iconButton dialogBackButton"
+    class="_iconButton_0fef65 _dialogBackButton_248199"
     role="button"
     tabindex="0"
   >
     <svg
       aria-hidden="true"
-      class="icon"
+      class="_icon_1e9999"
       focusable="false"
       viewBox="0 0 24 24"
       xmlns="http://www.w3.org/2000/svg"

@@ -5,12 +5,16 @@ import Dialog from './Dialog';
 
 describe('<Dialog>', () => {
   test('renders and matches snapshot', () => {
-    const { container } = render(
-      <Dialog onClose={jest.fn()} open>
-        Dialog contents
-      </Dialog>,
+    const { baseElement } = render(
+      <>
+        <span>Some content</span>
+        <Dialog onClose={vi.fn()} open={true}>
+          Dialog contents
+        </Dialog>
+        <span>Some other content</span>
+      </>,
     );
 
-    expect(container).toMatchSnapshot();
+    expect(baseElement).toMatchSnapshot();
   });
 });

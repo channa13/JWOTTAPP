@@ -1,18 +1,18 @@
 import React from 'react';
 
-import { render } from '../../testUtils';
-import { PersonalShelf } from '../../enum/PersonalShelf';
-import PlaylistContainer from '../../containers/Playlist/PlaylistContainer';
-
 import Favorites from './Favorites';
+
+import { PersonalShelf } from '#src/enum/PersonalShelf';
+import PlaylistContainer from '#src/containers/PlaylistContainer/PlaylistContainer';
+import { renderWithRouter } from '#test/testUtils';
 
 describe('<Favorites>', () => {
   test('renders and matches snapshot', () => {
-    const { container } = render(
-      <PlaylistContainer playlistId={PersonalShelf.Favorites}>
+    const { container } = renderWithRouter(
+      <PlaylistContainer type={PersonalShelf.Favorites}>
         {({ playlist, error, isLoading }) => (
           <Favorites
-            playlist={playlist.playlist}
+            playlist={playlist}
             error={error}
             isLoading={isLoading}
             onCardClick={() => null}

@@ -1,23 +1,25 @@
 import React from 'react';
-import { useHistory } from 'react-router';
+import { useLocation } from 'react-router';
 import { useTranslation } from 'react-i18next';
-import type { RegistrationFormData, Consent } from 'types/account';
-import type { FormErrors } from 'types/form';
-
-import useToggle from '../../hooks/useToggle';
-import { addQueryParam } from '../../utils/history';
-import TextField from '../TextField/TextField';
-import Button from '../Button/Button';
-import IconButton from '../IconButton/IconButton';
-import Visibility from '../../icons/Visibility';
-import VisibilityOff from '../../icons/VisibilityOff';
-import PasswordStrength from '../PasswordStrength/PasswordStrength';
-import Checkbox from '../Checkbox/Checkbox';
-import FormFeedback from '../FormFeedback/FormFeedback';
-import LoadingOverlay from '../LoadingOverlay/LoadingOverlay';
-import Link from '../Link/Link';
+import DOMPurify from 'dompurify';
 
 import styles from './RegistrationForm.module.scss';
+
+import TextField from '#components/TextField/TextField';
+import Button from '#components/Button/Button';
+import IconButton from '#components/IconButton/IconButton';
+import Visibility from '#src/icons/Visibility';
+import VisibilityOff from '#src/icons/VisibilityOff';
+import PasswordStrength from '#components/PasswordStrength/PasswordStrength';
+import Checkbox from '#components/Checkbox/Checkbox';
+import FormFeedback from '#components/FormFeedback/FormFeedback';
+import LoadingOverlay from '#components/LoadingOverlay/LoadingOverlay';
+import Link from '#components/Link/Link';
+import { testId } from '#src/utils/common';
+import useToggle from '#src/hooks/useToggle';
+import { addQueryParam } from '#src/utils/location';
+import type { FormErrors } from '#types/form';
+import type { RegistrationFormData, Consent } from '#types/account';
 
 type Props = {
   onSubmit: React.FormEventHandler<HTMLFormElement>;
@@ -51,12 +53,12 @@ const RegistrationForm: React.FC<Props> = ({
   const [viewPassword, toggleViewPassword] = useToggle();
 
   const { t } = useTranslation('account');
-  const history = useHistory();
+  const location = useLocation();
 
   const formatConsentLabel = (label: string): string | JSX.Element => {
-    // @todo sanitize consent label to prevent XSS
-    const hasHrefOpenTag = /<a(.|\n)*?>/.test(label);
-    const hasHrefCloseTag = /<\/a(.|\n)*?>/.test(label);
+    const sanitizedLabel = DOMPurify.sanitize(label);
+    const hasHrefOpenTag = /<a(.|\n)*?>/.test(sanitizedLabel);
+    const hasHrefCloseTag = /<\/a(.|\n)*?>/.test(sanitizedLabel);
 
     if (hasHrefOpenTag && hasHrefCloseTag) {
       return <span dangerouslySetInnerHTML={{ __html: label }} />;
@@ -74,7 +76,7 @@ const RegistrationForm: React.FC<Props> = ({
   }
 
   return (
-    <form onSubmit={onSubmit} data-testid="registration-form" noValidate>
+    <form onSubmit={onSubmit} data-testid={testId('registration-form')} noValidate>
       <h2 className={styles.title}>{t('registration.sign_up')}</h2>
       {errors.form ? <FormFeedback variant="error">{errors.form}</FormFeedback> : null}
       <TextField
@@ -96,19 +98,16 @@ const RegistrationForm: React.FC<Props> = ({
         label={t('registration.password')}
         placeholder={t('registration.password')}
         error={!!errors.password || !!errors.form}
-        helperText={(
+        helperText={
           <React.Fragment>
             <PasswordStrength password={values.password} />
             {t('registration.password_helper_text')}
           </React.Fragment>
-        )}
+        }
         name="password"
         type={viewPassword ? 'text' : 'password'}
         rightControl={
-          <IconButton
-            aria-label={viewPassword ? t('registration.hide_password') : t('registration.view_password')}
-            onClick={() => toggleViewPassword()}
-          >
+          <IconButton aria-label={viewPassword ? t('registration.hide_password') : t('registration.view_password')} onClick={() => toggleViewPassword()}>
             {viewPassword ? <Visibility /> : <VisibilityOff />}
           </IconButton>
         }
@@ -118,10 +117,11 @@ const RegistrationForm: React.FC<Props> = ({
         <Checkbox
           key={index}
           name={consent.name}
-          value={consent.name}
+          value={consent.value || ''}
           error={consentErrors?.includes(consent.name)}
+          helperText={consentErrors?.includes(consent.name) ? t('registration.consent_required') : undefined}
           required={consent.required}
-          checked={consentValues[consent.name]}
+          checked={consentValues[consent.name] || false}
           onChange={onConsentChange}
           label={formatConsentLabel(consent.label)}
         />
@@ -137,7 +137,7 @@ const RegistrationForm: React.FC<Props> = ({
         fullWidth
       />
       <p className={styles.bottom}>
-        {t('registration.already_account')} <Link to={addQueryParam(history, 'u', 'login')}>{t('login.sign_in')}</Link>
+        {t('registration.already_account')} <Link to={addQueryParam(location, 'u', 'login')}>{t('login.sign_in')}</Link>
       </p>
       {submitting && <LoadingOverlay transparentBackground inline />}
     </form>

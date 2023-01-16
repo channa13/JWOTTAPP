@@ -1,13 +1,5 @@
-@use '../../styles/variables';
-@use '../../styles/theme';
-
-.container {
-  &.error {
-    .helperText {
-      color: theme.$text-field-error-color;
-    }
-  }
-}
+@use 'src/styles/variables';
+@use 'src/styles/theme';
 
 .header {
   margin-bottom: 8px;
@@ -27,7 +19,7 @@
   margin-bottom: 8px;
 
   > label {
-    margin-left: variables.$base-spacing / 2;
+    margin-left: calc(#{variables.$base-spacing} / 2);
     font-size: 14px;
     cursor: pointer;
   }
@@ -66,10 +58,4 @@
       }
     }
   }
-}
-
-.helperText {
-  margin-top: 4px;
-  font-size: 12px;
-  text-align: left;
 }

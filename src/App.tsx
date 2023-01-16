@@ -1,73 +1,50 @@
-import React, { Component } from 'react';
-import { BrowserRouter as Router } from 'react-router-dom';
-import { I18nextProvider, getI18n } from 'react-i18next';
-import type { Config } from 'types/Config';
+import React, { useEffect, useState } from 'react';
+import { BrowserRouter, HashRouter } from 'react-router-dom';
 
-import Root from './components/Root/Root';
-import ConfigProvider from './providers/ConfigProvider';
-import QueryProvider from './providers/QueryProvider';
-import './i18n/config';
-import './styles/main.scss';
-import { restoreWatchHistory } from './stores/WatchHistoryStore';
-import { initializeFavorites } from './stores/FavoritesStore';
-import { initializeAccount } from './stores/AccountStore';
+import QueryProvider from '#src/providers/QueryProvider';
+import '#src/screenMapping';
+import '#src/styles/main.scss';
+import initI18n from '#src/i18n/config';
+import Root from '#components/Root/Root';
+import { ErrorPageWithoutTranslation } from '#components/ErrorPage/ErrorPage';
+import LoadingOverlay from '#components/LoadingOverlay/LoadingOverlay';
 
 interface State {
-  error: Error | null;
+  isLoading: boolean;
+  error?: Error;
 }
 
-class App extends Component {
-  public state: State = {
-    error: null,
-  };
+export default function App() {
+  const [i18nState, seti18nState] = useState<State>({ isLoading: true });
 
-  componentDidCatch(error: Error) {
-    this.setState({ error });
+  useEffect(() => {
+    initI18n()
+      .then(() => seti18nState({ isLoading: false }))
+      .catch((e) => seti18nState({ isLoading: false, error: e as Error }));
+  }, []);
+
+  if (i18nState.isLoading) {
+    return <LoadingOverlay />;
   }
 
-  initializeServices(config: Config) {
-    if (config.options.enableContinueWatching) {
-      restoreWatchHistory();
-    }
-
-    initializeFavorites();
-
-    if (config.cleengId) {
-      initializeAccount();
-    }
-  }
-
-  configLoadingHandler = (isLoading: boolean) => {
-    console.info(`Loading config: ${isLoading}`);
-  };
-
-  configErrorHandler = (error: Error) => {
-    this.setState({ error });
-    console.info('Error while loading the config.json:', error);
-  };
-
-  configValidationCompletedHandler = (config: Config) => {
-    this.initializeServices(config);
-  };
-
-  render() {
+  if (i18nState.error) {
+    // Don't be tempted to translate these strings. If i18n fails to load, translations won't work anyhow
     return (
-      <I18nextProvider i18n={getI18n()}>
-        <QueryProvider>
-          <ConfigProvider
-            configLocation={window.configLocation || './config.json'}
-            onLoading={this.configLoadingHandler}
-            onValidationError={this.configErrorHandler}
-            onValidationCompleted={this.configValidationCompletedHandler}
-          >
-            <Router>
-              <Root error={this.state.error} />
-            </Router>
-          </ConfigProvider>
-        </QueryProvider>
-      </I18nextProvider>
+      <ErrorPageWithoutTranslation
+        title={'Unable to load translations'}
+        message={'Check your language settings and try again later. If the problem persists contact technical support.'}
+        error={i18nState.error}
+      />
     );
   }
-}
 
-export default App;
+  const Router = import.meta.env.APP_PUBLIC_GITHUB_PAGES ? HashRouter : BrowserRouter;
+
+  return (
+    <QueryProvider>
+      <Router>
+        <Root />
+      </Router>
+    </QueryProvider>
+  );
+}
