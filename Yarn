@@ -1,0 +1,2 @@
+- name: Run a yarn or npm command
+  uses: Adzz/yarn_command_action@v2.0.0
